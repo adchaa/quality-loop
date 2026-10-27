@@ -1,0 +1,4 @@
+# Known-flaky tests. Format: "<suite>::<test>" per line group.
+jest: []
+xpcshell: []
+browser: []

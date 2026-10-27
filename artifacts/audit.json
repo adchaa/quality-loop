@@ -1,0 +1,78 @@
+[
+  {
+    "step": 0,
+    "node": "supervisor"
+  },
+  {
+    "step": 1,
+    "node": "fanout_score"
+  },
+  {
+    "step": 2,
+    "node": "fixer"
+  },
+  {
+    "step": 3,
+    "node": "verifier"
+  },
+  {
+    "step": 4,
+    "node": "reviewer"
+  },
+  {
+    "step": 5,
+    "node": "arbiter"
+  },
+  {
+    "step": 6,
+    "node": "supervisor"
+  },
+  {
+    "step": 7,
+    "node": "fanout_score"
+  },
+  {
+    "step": 8,
+    "node": "fixer"
+  },
+  {
+    "step": 9,
+    "node": "verifier"
+  },
+  {
+    "step": 10,
+    "node": "reviewer"
+  },
+  {
+    "step": 11,
+    "node": "arbiter"
+  },
+  {
+    "step": 12,
+    "node": "supervisor"
+  },
+  {
+    "step": 13,
+    "node": "fanout_score"
+  },
+  {
+    "step": 14,
+    "node": "fixer"
+  },
+  {
+    "step": 15,
+    "node": "verifier"
+  },
+  {
+    "step": 16,
+    "node": "reviewer"
+  },
+  {
+    "step": 17,
+    "node": "arbiter"
+  },
+  {
+    "step": 18,
+    "node": "memory"
+  }
+]

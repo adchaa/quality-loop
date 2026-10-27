@@ -1,0 +1,70 @@
+Creating the 'lint' site at /home/adchaa/.mozbuild/srcdirs/firefox-b6f89adc1098/_virtualenvs/lint
+ERROR: Could not install cargo-audit:
+
+Setting up artifact clang-tidy.tar.zst
+Downloading artifact to local cache: /home/adchaa/.mozbuild/toolchains/5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst
+Downloading 5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst... 0.0 %
+Downloading 5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst... 25.3 %
+Downloading 5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst... 50.6 %
+Downloading 5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst... 76.0 %
+Downloading 5615f72805a1d6b2-public%2Fbuild%2Fclang-tidy.tar.zst... 100.0 %
+untarring "/home/adchaa/.mozbuild/clang-tools/clang-tidy.tar.zst"
+Setting up artifact mozcheck.tar.zst
+Downloading artifact to local cache: /home/adchaa/.mozbuild/toolchains/11f9a3da60614760-public%2Fbuild%2Fmozcheck.tar.zst
+Downloading 11f9a3da60614760-public%2Fbuild%2Fmozcheck.tar.zst... 0.0 %
+Downloading 11f9a3da60614760-public%2Fbuild%2Fmozcheck.tar.zst... 100.0 %
+untarring "/home/adchaa/.mozbuild/mozcheck.tar.zst"
+Setting up artifact pnpm.tar.zst
+Downloading artifact to local cache: /home/adchaa/.mozbuild/toolchains/2db4e68cf87e9f22-public%2Fpnpm.tar.zst
+Downloading 2db4e68cf87e9f22-public%2Fpnpm.tar.zst... 0.0 %
+Downloading 2db4e68cf87e9f22-public%2Fpnpm.tar.zst... 100.0 %
+untarring "/home/adchaa/.mozbuild/pnpm.tar.zst"
+ERROR: problem with lint setup, skipping cargo-audit
+@eslint/json v2.0.1 needs to be installed locally.
+@stylistic/stylelint-plugin v3.1.1 needs to be installed locally.
+@types/node v26.1.2 needs to be installed locally.
+@typescript/lib-dom vfile:tools/@types needs to be installed locally.
+eslint v9.39.1 needs to be installed locally.
+eslint-config-prettier v10.1.8 needs to be installed locally.
+eslint-plugin-eslint-plugin v7.6.0 needs to be installed locally.
+eslint-plugin-html v8.1.4 needs to be installed locally.
+eslint-plugin-import v2.32.0 needs to be installed locally.
+eslint-plugin-jest v29.16.0 needs to be installed locally.
+eslint-plugin-jsdoc v63.3.3 needs to be installed locally.
+eslint-plugin-jsx-a11y v6.10.2 needs to be installed locally.
+eslint-plugin-lit v2.3.1 needs to be installed locally.
+eslint-plugin-mozilla vfile:tools/lint/eslint/eslint-plugin-mozilla needs to be installed locally.
+eslint-plugin-no-unsanitized v4.1.5 needs to be installed locally.
+eslint-plugin-promise v7.3.0 needs to be installed locally.
+eslint-plugin-react v7.37.5 needs to be installed locally.
+eslint-plugin-react-hooks v7.1.1 needs to be installed locally.
+eslint-plugin-sdl vfile:tools/lint/eslint/eslint-plugin-sdl-vendored needs to be installed locally.
+eslint-plugin-spidermonkey-js vfile:tools/lint/eslint/eslint-plugin-spidermonkey-js needs to be installed locally.
+globals v17.9.0 needs to be installed locally.
+jest v30.4.2 needs to be installed locally.
+jsdoc v4.0.5 needs to be installed locally.
+license-checker-rseidelsohn v4.4.2 needs to be installed locally.
+lit v3.3.3 needs to be installed locally.
+prettier v3.8.5 needs to be installed locally.
+stylelint v16.14.1 needs to be installed locally.
+stylelint-config-recommended v14.0.1 needs to be installed locally.
+stylelint-config-standard-scss v14.0.0 needs to be installed locally.
+stylelint-use-logical v2.1.2 needs to be installed locally.
+ts-patch v4.0.1 needs to be installed locally.
+typescript v6.0.3 needs to be installed locally.
+yarn v1.22.22 needs to be installed locally.
+eslint-scope v^8.4.0 needs to be installed locally.
+eslint-visitor-keys v^4.2.1 needs to be installed locally.
+espree v^10.4.0 needs to be installed locally.
+estraverse v^5.3.0 needs to be installed locally.
+htmlparser2 v^10.0.0 needs to be installed locally.
+toml-eslint-parser v1.0.3 needs to be installed locally.
+Clobbering /home/adchaa/Documents/9raya/quality/firefox/tools/lint/eslint/eslint-plugin-mozilla/node_modules...
+Installing eslint for mach using "/home/adchaa/.mozbuild/node/bin/node /home/adchaa/.mozbuild/node/bin/npm ci --loglevel=error"...
+
+eslint installed successfully!
+
+NOTE: Your local eslint binary is at /home/adchaa/Documents/9raya/quality/firefox/node_modules/.bin/eslint
+
+✖ 0 problems (0 errors, 5 warnings, 0 fixed)
+(pass -W/--warnings to see warnings.)

@@ -1,0 +1,33 @@
+# Python bytecode and local environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Local secrets and overrides
+.env
+.env.*
+!.env.example
+
+# Test, lint, and type-check caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# AQUA run output and monitor cache
+/artifacts/aqua-runs/
+/artifacts/runs/
+/artifacts/aqua-daemon.log
+/knowledge/monitor-latest.json
+/knowledge/monitor-events.jsonl
+/knowledge/monitor-logs/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

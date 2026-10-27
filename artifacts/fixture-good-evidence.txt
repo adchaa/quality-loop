@@ -1,0 +1,3 @@
+ESLint (jsx-a11y/alt-text) on browser/extensions/newtab/content-src/components/Card/Card.jsx:
+before: 1 error (img missing alt, line 42)
+after: 0 errors

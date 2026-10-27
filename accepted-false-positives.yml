@@ -1,0 +1,15 @@
+# Entries that the loop must never try to fix. Checked by normalize.py.
+- probe: jscpd
+  path: browser/extensions/newtab/prerendered/activity-stream.html
+  reason: generated output
+- probe: lizard
+  path: browser/extensions/newtab/content-src/components/TopSites/TopSites.jsx
+  reason: example placeholder, tune after baseline
+# L3 calibration 2026-10-14, live semgrep run on newtab (12 findings reviewed):
+# unsafe-formatstring INFOs all hit console.error/warn with template literals.
+# Browser console only interprets % specifiers in the first arg for local
+# devtools display; no server-side log forging or data leak. Mozilla style uses
+# this pattern pervasively. Suppress rule tree-wide; revisit if Node-side
+# util.format sinks appear.
+- rule: unsafe-formatstring
+  reason: console-only sink, no exploitable impact in browser chrome code

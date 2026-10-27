@@ -1,0 +1,49 @@
+roles:
+  supervisor:
+    provider: opencode
+    command: opencode
+    agent: plan
+    model: opencode/muse-spark-1.3-contributor-free
+    prompt: loop/prompts/supervisor.md
+    schema: loop/selection.schema.json
+    responsibility: Select one eligible finding from the supplied evidence set.
+  fixer:
+    provider: opencode
+    command: opencode
+    agent: plan
+    model: opencode/step-5-preview-free
+    prompt: loop/prompts/fixer.md
+    schema: loop/patch-response.schema.json
+    responsibility: Return one scoped diff; never edit the candidate checkout directly.
+  reviewer:
+    provider: codex-cli
+    command: codex
+    model: gpt-6-luna
+    prompt: loop/prompts/reviewer.md
+    sandbox: read-only
+    schema: loop/reviewer.schema.json
+    responsibility: Independently inspect the diff and evidence; cannot override failed gates.
+
+verification:
+  supported_probes: [eslint, semgrep, lizard]
+  touched_file_lint: mach_lint_json
+  require_primary_probe_reproduced: true
+  require_primary_probe_improved: true
+  reject_new_lint_findings: true
+  unsupported_probe_result: unresolved
+
+timeouts:
+  model_seconds: 300
+  probe_seconds: 300
+
+budgets:
+  max_steps: 24
+  max_l2_rounds: 3
+  patches_per_run: 5
+
+escalation:
+  scope_violation: stop
+  unsupported_probe: unresolved
+  security_patch_requires_human: true
+  reviewer_reject_routes_to_next_finding: true
+  merge_or_submit: never

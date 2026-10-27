@@ -1,0 +1,5 @@
+--- a/browser/extensions/newtab/content-src/components/Card/Card.jsx
++++ b/browser/extensions/newtab/content-src/components/Card/Card.jsx
+@@ -42,7 +42,7 @@
+-  <img src={imageUrl} />
++  <img src={imageUrl} alt={title} />

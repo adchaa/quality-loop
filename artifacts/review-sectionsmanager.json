@@ -1,0 +1,1 @@
+{"verdict":"PASS","feedback":"The probe passes: the file re-scan reports 0 findings, removing the flagged sink while leaving the safe fresh-object assignment. The diff touches the finding’s scope and does not mutate Redux state, add Nova CSS, alter platform dependencies or Glean metrics, or grow the bundle."}

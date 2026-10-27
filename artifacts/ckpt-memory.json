@@ -1,0 +1,70 @@
+{
+  "node": "memory",
+  "tokens": 14100,
+  "t": 1791963854.025456,
+  "state": {
+    "scores": {
+      "performance_efficiency": 80,
+      "interaction_capability": 80,
+      "security": 80,
+      "maintainability": 83
+    },
+    "gates": {
+      "performance_efficiency": {
+        "target": 100
+      },
+      "interaction_capability": {
+        "target": 100
+      },
+      "security": {
+        "target": 100
+      },
+      "maintainability": {
+        "target": 100
+      }
+    },
+    "weights": {
+      "performance_efficiency": 0.3,
+      "interaction_capability": 0.25,
+      "security": 0.25,
+      "maintainability": 0.2
+    },
+    "round": 3,
+    "max_rounds": 3,
+    "budget": 5,
+    "inject": "",
+    "tokens_used": 14100,
+    "sig": "r3-done",
+    "deficit": {
+      "performance_efficiency": 6.0,
+      "interaction_capability": 5.0,
+      "security": 5.0,
+      "maintainability": 3.6
+    },
+    "scored_lanes": [
+      "performance_efficiency",
+      "interaction_capability",
+      "security",
+      "maintainability"
+    ],
+    "attempted": [
+      "UP031",
+      "PLW2901",
+      "mozilla/reject-import-preferences-module"
+    ],
+    "patch": {
+      "id": "mozilla/reject-import-preferences-module",
+      "characteristic": "maintainability",
+      "score_deltas": {
+        "maintainability": 1
+      },
+      "regression_verdict": "pass"
+    },
+    "verdict": "pass",
+    "review": "approve",
+    "calibrated": true,
+    "issues": 54,
+    "shortlist": 5,
+    "patches": 3
+  }
+}

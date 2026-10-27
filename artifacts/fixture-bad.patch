@@ -1,0 +1,7 @@
+--- a/browser/extensions/newtab/common/Reducers.sys.mjs
++++ b/browser/extensions/newtab/common/Reducers.sys.mjs
+@@ -10,6 +10,7 @@
+ function topSites(state, action) {
++  state.rows.push(action.data);
+   return state;
+ }

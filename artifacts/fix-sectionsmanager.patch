@@ -1,0 +1,14 @@
+diff --git a/browser/extensions/newtab/lib/SectionsManager.sys.mjs b/browser/extensions/newtab/lib/SectionsManager.sys.mjs
+index 52f096141a..1d886128db 100644
+--- a/browser/extensions/newtab/lib/SectionsManager.sys.mjs
++++ b/browser/extensions/newtab/lib/SectionsManager.sys.mjs
+@@ -173,7 +173,8 @@ export const SectionsManager = {
+       pref: Object.assign({}, defaultSection.pref),
+     });
+     section.pref.feed = feedPrefName;
+-    this.addSection(section.id, Object.assign(section, { options }));
++    section.options = options;
++    this.addSection(section.id, section);
+   },
+   addSection(id, options) {
+     this.updateLinkMenuOptions(options, id);

@@ -1,0 +1,44 @@
+[
+  {
+    "probe": "eslint",
+    "path": "browser/extensions/newtab/content-src/components/Card/Card.jsx",
+    "line": 42,
+    "rule": "jsx-a11y/alt-text",
+    "severity": 2,
+    "message": "img missing alt",
+    "iso_characteristic": "maintainability",
+    "iso_subcharacteristic": "analysability",
+    "verify_cmd": "re-run eslint on browser/extensions/newtab/content-src/components/Card/Card.jsx"
+  },
+  {
+    "probe": "eslint",
+    "path": "browser/extensions/newtab/lib/SponsoredFeed.sys.mjs",
+    "line": 10,
+    "rule": "no-unused-vars",
+    "severity": 2,
+    "message": "unused x",
+    "iso_characteristic": "maintainability",
+    "iso_subcharacteristic": "analysability",
+    "verify_cmd": "re-run eslint on browser/extensions/newtab/lib/SponsoredFeed.sys.mjs"
+  },
+  {
+    "probe": "semgrep",
+    "path": "browser/extensions/newtab/lib/SponsorProtection.sys.mjs",
+    "line": 88,
+    "rule": "js.dangerous-innerHTML",
+    "severity": "ERROR",
+    "message": "raw HTML sink",
+    "iso_characteristic": "security",
+    "iso_subcharacteristic": "integrity",
+    "verify_cmd": "re-run semgrep on browser/extensions/newtab/lib/SponsorProtection.sys.mjs"
+  },
+  {
+    "probe": "lizard",
+    "path": "browser/extensions/newtab/lib/TopSitesFeed.sys.mjs",
+    "function": "refresh",
+    "complexity": 18,
+    "iso_characteristic": "maintainability",
+    "iso_subcharacteristic": "analysability",
+    "verify_cmd": "re-run lizard on browser/extensions/newtab/lib/TopSitesFeed.sys.mjs"
+  }
+]

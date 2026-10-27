@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""AQUA control commands for the orchestrator agent (see ../SKILL.md).
+
+Each command is one request to the AQUA control daemon (loop/aqua/control.py),
+which holds the session, measures candidates and enforces the rules. `start`
+launches the daemon if it is not running. Output is JSON on stdout; exit code 1
+means the controller refused or failed (read "error").
+
+    aqua start [--rounds N] [--fresh]
+    aqua status | plan | findings [--characteristic C] [--limit N]
+    aqua open-round FINDING_ID --why "..."
+    aqua delegate localizer|implementer|reviewer|reporter [--brief "..."|--brief -]
+                  [--candidate ID] [-n N] [--models a,b] [--escalate]
+    aqua evaluate [CANDIDATE_ID ...]
+    aqua candidate ID | commit ID | give-up "reason" | finish
+    aqua wait JOB_ID ... [--seconds 90]
+    aqua stop
+
+Stdlib only: it runs with any python3.
+"""
+import argparse
+import json
+import os
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+LOOP_ROOT = Path(__file__).resolve().parents[3]          # loop/skills/aqua/scripts/aqua
+SOCKET = Path(os.environ.get("AQUA_SOCKET", LOOP_ROOT / "artifacts" / "aqua.sock"))
+DAEMON = LOOP_ROOT / "aqua" / "control.py"
+VENV_PYTHON = LOOP_ROOT.parent / ".venv" / "bin" / "python"
+LOG = LOOP_ROOT / "artifacts" / "aqua-daemon.log"
+
+
+def request(op, args, timeout):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as conn:
+        conn.settimeout(timeout)
+        conn.connect(str(SOCKET))
+        conn.sendall((json.dumps({"op": op, "args": args}) + "\n").encode())
+        data = b""
+        while not data.endswith(b"\n"):
+            chunk = conn.recv(65536)
+            if not chunk:
+                break
+            data += chunk
+    return json.loads(data)
+
+
+def alive():
+    try:
+        request("status", {}, 5)
+        return True
+    except OSError:
+        return False
+
+
+def spawn(agent):
+    python = str(VENV_PYTHON if VENV_PYTHON.exists() else sys.executable)
+    LOG.parent.mkdir(parents=True, exist_ok=True)
+    with LOG.open("a") as log:
+        subprocess.Popen([python, str(DAEMON), "serve", "--agent", agent, "--socket", str(SOCKET)],
+                         cwd=LOOP_ROOT, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                         start_new_session=True)
+    for _ in range(60):
+        time.sleep(0.5)
+        if alive():
+            return
+    sys.exit(f"the AQUA daemon did not start; see {LOG}")
+
+
+def brief(value):
+    return sys.stdin.read() if value == "-" else (value or "")
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="aqua", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="op", required=True)
+    p = sub.add_parser("start", help="start a session (and the daemon)")
+    p.add_argument("--agent", default=os.environ.get("AQUA_AGENT", "unknown"),
+                   help="recorded as the session's driver")
+    p.add_argument("--rounds", type=int, default=0, help="0 = configured budget")
+    p.add_argument("--fresh", action="store_true", help="re-run MONITOR even if the code is unchanged")
+    sub.add_parser("status")
+    sub.add_parser("plan")
+    p = sub.add_parser("findings")
+    p.add_argument("--characteristic", default="")
+    p.add_argument("--limit", type=int, default=10)
+    p = sub.add_parser("open-round")
+    p.add_argument("finding_id")
+    p.add_argument("--why", required=True, help="your rationale (recorded and reported)")
+    p = sub.add_parser("delegate")
+    p.add_argument("role", choices=["localizer", "implementer", "reviewer", "reporter"])
+    p.add_argument("--brief", default="", help="guidance for the subagent; '-' reads stdin")
+    p.add_argument("--candidate", default="")
+    p.add_argument("-n", type=int, default=0)
+    p.add_argument("--models", default="", help="comma-separated implementer models")
+    p.add_argument("--escalate", action="store_true", help="reviewer: rationed second opinion from a stronger model")
+    p = sub.add_parser("evaluate")
+    p.add_argument("candidate_ids", nargs="*")
+    for name in ("candidate", "commit"):
+        sub.add_parser(name).add_argument("candidate_id")
+    sub.add_parser("give-up").add_argument("reason")
+    sub.add_parser("finish")
+    p = sub.add_parser("wait")
+    p.add_argument("job_ids", nargs="+")
+    p.add_argument("--seconds", type=int, default=90)
+    sub.add_parser("stop")
+    a = ap.parse_args()
+
+    args = {"start": lambda: {"rounds": a.rounds, "fresh": a.fresh, "agent": a.agent},
+            "findings": lambda: {"characteristic": a.characteristic, "limit": a.limit},
+            "open-round": lambda: {"finding_id": a.finding_id, "rationale": a.why},
+            "delegate": lambda: {"role": a.role, "brief": brief(a.brief), "candidate_id": a.candidate, "n": a.n,
+                                 "models": [m for m in a.models.split(",") if m], "escalate": a.escalate},
+            "evaluate": lambda: {"candidate_ids": a.candidate_ids},
+            "candidate": lambda: {"candidate_id": a.candidate_id},
+            "commit": lambda: {"candidate_id": a.candidate_id},
+            "give-up": lambda: {"reason": a.reason},
+            "wait": lambda: {"job_ids": a.job_ids, "seconds": a.seconds}}.get(a.op, dict)()
+
+    if not alive():
+        if a.op != "start":
+            print(json.dumps({"error": "no AQUA session is running; run `aqua start` first"}))
+            return 1
+        SOCKET.unlink(missing_ok=True)
+        spawn(a.agent)
+    out = request(a.op, args, timeout=130)
+    print(json.dumps(out, indent=1))
+    return 1 if isinstance(out, dict) and "error" in out else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

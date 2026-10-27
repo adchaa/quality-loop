@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PatchProposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["diff", "hypothesis"],
+  "properties": {
+    "diff": {"type": "string", "minLength": 20},
+    "hypothesis": {"type": "string", "maxLength": 1000}
+  }
+}

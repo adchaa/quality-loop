@@ -1,0 +1,1 @@
+{"verdict":"PASS","feedback":"The reporting probe passes: the jsx-a11y error drops from 1 to 0. The diff touches the finding’s scope by adding alt text to the reported image. No Redux, Nova CSS, platform dependency, Glean metric, or bundle concerns apply."}

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Evidence-Gated Agent Loop for Firefox Quality</title>
+<style>
+:root {
+  --ink:#17212b; --muted:#546474; --line:#d6dee6; --paper:#ffffff; --wash:#f3f6f8;
+  --navy:#101d2b; --blue:#1769aa; --blue-soft:#eaf3fb; --teal:#087e78; --teal-soft:#e8f5f2;
+  --amber:#9a5b08; --amber-soft:#fff4df; --red:#9f3434; --red-soft:#fceeee; --green:#1d7046;
+  --shadow:0 12px 30px rgba(16,29,43,.08);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; color:var(--ink); background:var(--wash); font:16px/1.62 system-ui,-apple-system,"Segoe UI",sans-serif; }
+a { color:#075ea8; text-underline-offset:3px; }
+a:hover { color:#083e6c; }
+header.hero { color:#f4f7fa; background:linear-gradient(130deg,#101d2b 0%,#183a56 58%,#116e70 100%); padding:54px max(24px,calc((100vw - 1100px)/2)) 46px; }
+.eyebrow { color:#acd9e5; font-size:12px; font-weight:750; letter-spacing:.13em; text-transform:uppercase; }
+h1 { max-width:880px; margin:12px 0 12px; font-size:clamp(32px,5vw,54px); line-height:1.06; letter-spacing:-.04em; }
+.hero p { max-width:780px; margin:0; color:#d4e0e8; font-size:18px; line-height:1.55; }
+.hero-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.pill { display:inline-block; padding:5px 10px; border:1px solid rgba(255,255,255,.28); border-radius:999px; color:#e8f2f6; font-size:12px; }
+.topnav { position:sticky; top:0; z-index:10; display:flex; flex-wrap:wrap; justify-content:center; gap:4px 17px; padding:10px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.96); backdrop-filter:blur(10px); }
+.topnav a { color:#354a5c; font-size:12px; font-weight:650; text-decoration:none; }
+.topnav a:hover { color:var(--blue); text-decoration:underline; }
+main { max-width:1100px; margin:0 auto; padding:26px 22px 70px; }
+section { margin:22px 0; scroll-margin-top:64px; }
+h2 { margin:0 0 12px; font-size:25px; line-height:1.2; letter-spacing:-.025em; }
+h3 { margin:18px 0 6px; font-size:17px; line-height:1.3; }
+p { margin:8px 0 12px; }
+.lead { max-width:900px; color:#34495a; font-size:18px; line-height:1.55; }
+.card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px 22px; box-shadow:var(--shadow); }
+.grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.thesis { border-left:5px solid var(--teal); background:#f0faf8; padding:14px 18px; border-radius:0 12px 12px 0; font-size:18px; font-weight:650; }
+.small { color:var(--muted); font-size:13px; }
+.kicker { color:var(--blue); font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.number { display:inline-flex; width:30px; height:30px; align-items:center; justify-content:center; border-radius:9px; color:#fff; background:var(--blue); font-size:13px; font-weight:800; }
+.diagram-wrap { overflow:hidden; padding:10px; }
+.architecture { width:100%; height:auto; display:block; }
+.architecture text { font-family:system-ui,-apple-system,"Segoe UI",sans-serif; fill:var(--ink); }
+.arch-mobile-flow { display:none; }
+.mstep { display:grid; grid-template-columns:30px 1fr; gap:10px; padding:8px 0; }
+.mnum { display:grid; place-items:center; width:27px; height:27px; border-radius:8px; background:var(--blue); color:#fff; font-size:12px; font-weight:800; }
+.mstep strong { display:block; font-size:14px; }
+.mstep p { margin:2px 0 0; color:var(--muted); font-size:13px; }
+.mconnector { padding-left:9px; color:var(--teal); font-weight:800; line-height:12px; }
+.mobile-log { margin:8px 0 2px; padding:10px 12px; border-radius:9px; background:#eef2f5; color:#34495a; font-size:12px; }
+.architecture .title { font-size:16px; font-weight:750; }
+.architecture .detail { font-size:12px; fill:#506171; }
+.architecture .stepnum { font-size:11px; font-weight:800; fill:#fff; }
+.architecture .box { fill:#fff; stroke:#ced8e1; stroke-width:1.5; }
+.architecture .actor { fill:#edf5fb; stroke:#9fc1db; }
+.architecture .data { fill:#eaf5f2; stroke:#9ccdc0; }
+.architecture .verify { fill:#fff4df; stroke:#e4bf79; }
+.architecture .human { fill:#f4effa; stroke:#c7b4dd; }
+.architecture .path { fill:none; stroke:#536c7e; stroke-width:2; }
+.architecture .feedback { fill:none; stroke:#087e78; stroke-width:2; stroke-dasharray:6 5; }
+.caption { margin:7px 8px 0; color:var(--muted); font-size:12px; }
+ul.tight { margin:8px 0; padding-left:20px; }
+ul.tight li { margin:5px 0; }
+ol.steps { counter-reset:step; list-style:none; margin:0; padding:0; }
+ol.steps li { position:relative; counter-increment:step; padding:0 0 18px 44px; border-left:2px solid #cbdce8; margin-left:14px; }
+ol.steps li:last-child { border-color:transparent; padding-bottom:0; }
+ol.steps li:before { content:counter(step); position:absolute; left:-15px; top:-1px; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; color:#fff; background:var(--blue); font-size:12px; font-weight:800; }
+ol.steps strong { color:#152d40; }
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:10px 11px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { background:#f1f5f8; color:#233a4b; font-size:12px; letter-spacing:.03em; }
+td:first-child { min-width:160px; font-weight:700; }
+.status { display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; font-weight:750; white-space:nowrap; }
+.status.live { color:#155b3a; background:#e7f6ed; }
+.status.config { color:#78500b; background:#fff1d4; }
+.status.gap { color:#596776; background:#edf1f4; }
+.note { padding:13px 15px; border-radius:10px; margin:12px 0; font-size:13px; }
+.note.warn { color:#78470b; background:var(--amber-soft); border-left:4px solid #d99929; }
+.note.good { color:#174d39; background:#eaf6ef; border-left:4px solid #32835b; }
+.note.risk { color:#783232; background:var(--red-soft); border-left:4px solid #b95555; }
+code { padding:2px 5px; border-radius:5px; background:#edf1f4; color:#20394d; font: .9em ui-monospace,SFMono-Regular,Consolas,monospace; }
+pre { overflow:auto; padding:14px 16px; border-radius:10px; background:#111c27; color:#e4edf3; font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; }
+pre code { padding:0; color:inherit; background:transparent; }
+.two-col-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 20px; }
+.metric { border-top:3px solid var(--blue); padding:12px 0 0; }
+.metric b { display:block; margin-bottom:4px; }
+.metric span { color:var(--muted); font-size:13px; }
+.source-list { padding-left:22px; }
+.source-list li { margin:10px 0; padding-left:3px; }
+.source-list .source-note { display:block; color:var(--muted); font-size:13px; }
+footer { border-top:1px solid var(--line); padding:18px 0 0; color:var(--muted); font-size:12px; }
+@media (max-width:760px) {
+  header.hero { padding:38px 22px 34px; }
+  .grid2,.grid3,.two-col-list { grid-template-columns:1fr; }
+  main { padding:20px 14px 48px; }
+  h2 { font-size:22px; }
+  .architecture { display:none; }
+  .arch-mobile-flow { display:block; }
+  .diagram-wrap { overflow:visible; }
+  .topnav { justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; }
+  .topnav a { white-space:nowrap; }
+}
+@media print {
+  body { background:#fff; font-size:11pt; }
+  header.hero { padding:25px; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .topnav { display:none; }
+  main { max-width:none; padding:10px 0; }
+  .card { box-shadow:none; break-inside:avoid; }
+  section { break-inside:avoid; }
+  a { color:#075ea8; }
+  .architecture { min-width:0; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">Research-grounded architecture proposal · Firefox New Tab / Activity Stream</div>
+  <h1>An evidence-gated agent loop for software quality</h1>
+  <p>Use ISO/IEC 25010 to decide what quality means, engineering tools to measure it, an AI agent to propose a small change, and independent checks to decide whether the change earns promotion.</p>
+  <div class="hero-meta">
+    <span class="pill">Target: Firefox newtab pilot</span>
+    <span class="pill">ISO/IEC 25010:2023</span>
+    <span class="pill">Architecture + implementation status</span>
+    <span class="pill">14 October 2026</span>
+  </div>
+</header>
+<nav class="topnav" aria-label="Report sections">
+  <a href="#summary">Summary</a><a href="#architecture">Architecture</a><a href="#quality">ISO model</a>
+  <a href="#loop">Loop details</a><a href="#example">Firefox example</a><a href="#implementation">Current code</a>
+  <a href="#research">Research plan</a><a href="#sources">Sources</a>
+</nav>
+
+<main>
+<section id="summary">
+  <div class="kicker">Start here</div>
+  <h2>The idea in one minute</h2>
+  <p class="lead">An agent should not be allowed to declare its own code “higher quality.” It proposes an experiment. Reproducible measurements and tests decide whether the experiment worked.</p>
+  <div class="thesis">ISO gives the quality vocabulary. Probes produce evidence. The agent proposes a patch. A deterministic gate checks it. A human decides what to adopt.</div>
+  <div class="grid2" style="margin-top:16px">
+    <article class="card">
+      <h3 style="margin-top:0">Why this architecture?</h3>
+      <p>A single “fix all findings” agent can optimize what is easy to count while missing regressions elsewhere. A large swarm of scoring agents adds coordination but does not make scores true. This design keeps reasoning flexible and decisions inspectable: every candidate patch is attached to a claim and a before/after test result.</p>
+    </article>
+    <article class="card">
+      <h3 style="margin-top:0">What counts as an agent?</h3>
+      <p>The executable pilot uses three model roles behind CLI boundaries: Muse Spark selects one known finding, Step 5 returns a scoped diff, and GPT-6 Luna reviews that diff and its evidence. Deterministic code controls scope, verification and acceptance. The model never writes into the user’s Firefox checkout.</p>
+    </article>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="kicker">Presenter talk track</div>
+    <p><b>“We turn ISO 25010 into a quality contract for a Firefox component. Tools measure the current behavior and create evidence-backed work items. One agent proposes one isolated patch at a time. We rerun the reproducer and risk-appropriate Firefox checks, compare the result with the baseline, and keep the patch only if the measured gain appears without crossing a hard quality gate. The run log lets us audit and reproduce the decision. The agent prepares candidates; people remain responsible for adoption.”</b></p>
+    <p class="small">A natural presentation path is: problem → ISO quality model → architecture → example patch → how to evaluate the research claim.</p>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="kicker">System view</div>
+  <h2>Architecture and control flow</h2>
+  <p>The design has two halves: an <b>evidence plane</b> that measures the product, and a <b>control plane</b> that decides which experiment to run and whether its result passes policy. The language model works inside that boundary.</p>
+  <figure class="card diagram-wrap">
+    <svg class="architecture" viewBox="0 0 1040 430" role="img" aria-labelledby="arch-title arch-desc">
+      <title id="arch-title">Evidence-gated Firefox quality loop</title>
+      <desc id="arch-desc">The quality contract selects measurable ISO characteristics. Firefox probes create a baseline and typed evidence. A deterministic controller selects one issue. An agent proposes one patch in an isolated workspace. Independent tests and policy gates accept or reject it. A human reviews accepted candidates. The run record stores every event, and accepted changes begin the next measurement cycle.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#536c7e"/></marker>
+        <marker id="arrow-teal" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#087e78"/></marker>
+      </defs>
+      <rect class="box" x="16" y="24" width="226" height="122" rx="13"/>
+      <circle cx="39" cy="48" r="12" fill="#1769aa"/><text class="stepnum" x="39" y="52" text-anchor="middle">1</text>
+      <text class="title" x="60" y="53">Quality contract</text>
+      <text class="detail" x="32" y="80"><tspan x="32">ISO characteristics, scope,</tspan><tspan x="32" dy="18">operational measures, hard</tspan><tspan x="32" dy="18">gates and stop conditions.</tspan></text>
+
+      <rect class="box data" x="272" y="24" width="226" height="122" rx="13"/>
+      <circle cx="295" cy="48" r="12" fill="#087e78"/><text class="stepnum" x="295" y="52" text-anchor="middle">2</text>
+      <text class="title" x="316" y="53">Observe baseline</text>
+      <text class="detail" x="288" y="80"><tspan x="288">Firefox-native probes run</tspan><tspan x="288" dy="18">on a pinned revision and</tspan><tspan x="288" dy="18">record raw output + context.</tspan></text>
+
+      <rect class="box data" x="528" y="24" width="226" height="122" rx="13"/>
+      <circle cx="551" cy="48" r="12" fill="#087e78"/><text class="stepnum" x="551" y="52" text-anchor="middle">3</text>
+      <text class="title" x="572" y="53">Evidence ledger</text>
+      <text class="detail" x="544" y="80"><tspan x="544">Findings are normalized into</tspan><tspan x="544" dy="18">typed evidence with source,</tspan><tspan x="544" dy="18">severity, location + artifact.</tspan></text>
+
+      <rect class="box actor" x="784" y="24" width="226" height="122" rx="13"/>
+      <circle cx="807" cy="48" r="12" fill="#1769aa"/><text class="stepnum" x="807" y="52" text-anchor="middle">4</text>
+      <text class="title" x="828" y="53">Muse Spark selector</text>
+      <text class="detail" x="800" y="80"><tspan x="800">Chooses one supplied issue;</tspan><tspan x="800" dy="18">the controller checks its ID,</tspan><tspan x="800" dy="18">scope and remaining budget.</tspan></text>
+
+      <path class="path" d="M242 85H265" marker-end="url(#arrow)"/>
+      <path class="path" d="M498 85H521" marker-end="url(#arrow)"/>
+      <path class="path" d="M754 85H777" marker-end="url(#arrow)"/>
+      <path class="path" d="M897 146V208" marker-end="url(#arrow)"/>
+
+      <rect class="box actor" x="784" y="218" width="226" height="122" rx="13"/>
+      <circle cx="807" cy="242" r="12" fill="#1769aa"/><text class="stepnum" x="807" y="246" text-anchor="middle">5</text>
+      <text class="title" x="828" y="247">Step 5 diff proposer</text>
+      <text class="detail" x="800" y="274"><tspan x="800">Returns one-file diff + reason;</tspan><tspan x="800" dy="18">controller applies it only in</tspan><tspan x="800" dy="18">an isolated candidate worktree.</tspan></text>
+
+      <rect class="box verify" x="528" y="218" width="226" height="122" rx="13"/>
+      <circle cx="551" cy="242" r="12" fill="#9a5b08"/><text class="stepnum" x="551" y="246" text-anchor="middle">6</text>
+      <text class="title" x="572" y="247">Probe + lint gate</text>
+      <text class="detail" x="544" y="274"><tspan x="544">Reproduce and rerun the issue</tspan><tspan x="544" dy="18">probe; touched-file lint must</tspan><tspan x="544" dy="18">add no new findings.</tspan></text>
+
+      <rect class="box human" x="272" y="218" width="226" height="122" rx="13"/>
+      <circle cx="295" cy="242" r="12" fill="#77549b"/><text class="stepnum" x="295" y="246" text-anchor="middle">7</text>
+      <text class="title" x="316" y="247">Luna review + human</text>
+      <text class="detail" x="288" y="274"><tspan x="288">Read-only critic; hard failure</tspan><tspan x="288" dy="18">or missing evidence rejects.</tspan><tspan x="288" dy="18">People decide adoption.</tspan></text>
+
+      <rect class="box data" x="16" y="218" width="226" height="122" rx="13"/>
+      <circle cx="39" cy="242" r="12" fill="#087e78"/><text class="stepnum" x="39" y="246" text-anchor="middle">8</text>
+      <text class="title" x="60" y="247">Return candidate</text>
+      <text class="detail" x="32" y="274"><tspan x="32">People adopt, revise or</tspan><tspan x="32" dy="18">discard the patch. Adoption</tspan><tspan x="32" dy="18">starts a new measured cycle.</tspan></text>
+
+      <path class="path" d="M784 279H761" marker-end="url(#arrow)"/>
+      <path class="path" d="M528 279H505" marker-end="url(#arrow)"/>
+      <path class="path" d="M272 279H249" marker-end="url(#arrow)"/>
+      <path class="feedback" d="M128 218V179H385V153" marker-end="url(#arrow-teal)"/>
+      <text class="detail" x="186" y="174">human-adopted change starts next cycle</text>
+
+      <rect x="16" y="372" width="994" height="40" rx="10" fill="#eef2f5" stroke="#d4dce3"/>
+      <text class="title" x="34" y="397" style="font-size:13px">Append-only run record:</text>
+      <text class="detail" x="190" y="397">contract → revision → probe actions/results → hypothesis → diff → checks → gate decision → reviewer notes</text>
+    </svg>
+    <div class="arch-mobile-flow" aria-label="Loop steps on a narrow screen">
+      <div class="mstep"><span class="mnum">1</span><div><strong>Define the quality contract</strong><p>Select the ISO characteristics, measures, scope and hard gates for this run.</p></div></div>
+      <div class="mconnector" aria-hidden="true">↓</div>
+      <div class="mstep"><span class="mnum">2</span><div><strong>Measure and record evidence</strong><p>Run Firefox probes on a pinned revision; retain raw output and typed findings.</p></div></div>
+      <div class="mconnector" aria-hidden="true">↓</div>
+      <div class="mstep"><span class="mnum">3</span><div><strong>Select one issue and propose a patch</strong><p>The controller selects by policy. The agent edits an isolated candidate and explains its hypothesis.</p></div></div>
+      <div class="mconnector" aria-hidden="true">↓</div>
+      <div class="mstep"><span class="mnum">4</span><div><strong>Verify independently</strong><p>Rerun the reproducer and risk-appropriate checks. Failed or missing required evidence blocks promotion.</p></div></div>
+      <div class="mconnector" aria-hidden="true">↓</div>
+      <div class="mstep"><span class="mnum">5</span><div><strong>Human reviews; accepted change starts a new cycle</strong><p>Rejected candidates are discarded while their evidence remains in the run record.</p></div></div>
+      <div class="mobile-log"><b>Run record:</b> contract · revision · probe outputs · patch · checks · decision</div>
+    </div>
+    <figcaption class="caption">Figure 1. Muse Spark selects, Step 5 proposes, native tools verify, and GPT-6 Luna critiques. Deterministic policy owns the pass/fail decision. Event sourcing and typed action/result boundaries are informed by the OpenHands SDK architecture [2].</figcaption>
+  </figure>
+  <div class="grid3" style="margin-top:14px">
+    <article class="card"><h3 style="margin-top:0">Muse Spark 1.3 · selector</h3><p>Receives only the eligible finding list and returns one allowed finding ID or a stop decision. The controller rejects invented IDs.</p><p class="small">OpenCode CLI · plan agent · JSON response</p></article>
+    <article class="card"><h3 style="margin-top:0">Step 5 · patch proposer</h3><p>Receives one finding, source context and local instructions. It returns a one-file diff and causal hypothesis. Code applies the diff in a detached candidate worktree.</p><p class="small">OpenCode CLI · plan agent · no direct checkout edits</p></article>
+    <article class="card"><h3 style="margin-top:0">GPT-6 Luna · critic</h3><p>Reads the patch and deterministic evidence in a separate Codex CLI process. Its PASS is advisory; failed or missing checks still reject the candidate.</p><p class="small">Codex CLI · read-only sandbox · schema-constrained verdict</p></article>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <article class="card"><div class="kicker">Reasoning plane</div><h3>Use AI where judgment helps</h3><p>Interpret a finding, locate relevant code, propose a minimal patch, explain its expected effect, and react to test failures.</p></article>
+    <article class="card"><div class="kicker">Evidence plane</div><h3>Use tools for observable facts</h3><p>Tests, lint, static analysis, bundle reports and browser checks return results. A model’s confidence is not a test result.</p></article>
+    <article class="card"><div class="kicker">Control plane</div><h3>Use code for policy</h3><p>Enforce scope, budgets, test selection, non-waivable gates, rollback and stop conditions. No model can mark a failed check green.</p></article>
+  </div>
+</section>
+
+<section id="quality">
+  <div class="kicker">Quality model</div>
+  <h2>ISO/IEC 25010:2023: a checklist for the product</h2>
+  <p>The current product-quality model has nine characteristics. It gives a shared vocabulary for specifying and evaluating product quality; it does not prescribe Firefox tools, thresholds, agent roles, or a single weighted score [1]. The pilot should map its actual measures to the relevant characteristics and explicitly label gaps.</p>
+  <div class="note warn"><b>Important design choice:</b> keep a vector of observed measures. Use hard gates for correctness, security and regressions. A gain in one characteristic must not mathematically cancel a failure in another. Weights and numeric thresholds are local policy choices and need empirical calibration.</div>
+  <div class="card table-scroll">
+    <table>
+      <thead><tr><th>ISO characteristic</th><th>Firefox / New Tab interpretation</th><th>Possible evidence</th><th>Current pilot coverage</th></tr></thead>
+      <tbody>
+        <tr><td>Functional suitability</td><td>New Tab functions do what their requirements and expected behavior specify.</td><td>Issue reproducer; targeted Jest and xpcshell tests.</td><td><span class="status config">Registered; no dynamic R1 run</span></td></tr>
+        <tr><td>Performance efficiency</td><td>Startup, feed rendering, memory / CPU use and delivered resource size.</td><td>Bundle size and repeatable runtime measurements with pinned environment.</td><td><span class="status config">Probe configured; no R1 baseline</span></td></tr>
+        <tr><td>Compatibility</td><td>Coexists and interoperates with Firefox platforms, preferences and channels.</td><td>Channel / platform matrix; compatibility tests for touched APIs.</td><td><span class="status gap">Not directly measured</span></td></tr>
+        <tr><td>Interaction capability</td><td>People can understand and operate New Tab, including with assistive technology.</td><td>Accessibility lint, axe checks, keyboard and interaction tests.</td><td><span class="status config">Probe registered; not isolated in R1</span></td></tr>
+        <tr><td>Reliability</td><td>New Tab behaves consistently and recovers from relevant failures.</td><td>Failure, crash, retry, recovery and stability scenarios.</td><td><span class="status gap">Not directly measured</span></td></tr>
+        <tr><td>Security</td><td>Changes preserve confidentiality, integrity and expected trust boundaries.</td><td>Semgrep / security lint findings plus threat-relevant tests and review.</td><td><span class="status live">Static scan run; one finding narrowly verified</span></td></tr>
+        <tr><td>Maintainability</td><td>Code can be understood, analyzed, changed and tested.</td><td>ESLint, complexity, duplication, tests and review.</td><td><span class="status live">Static probes run; dynamic tests not run</span></td></tr>
+        <tr><td>Flexibility</td><td>New Tab can adapt to relevant environments and future change.</td><td>Build / configuration matrix and adaptation scenarios.</td><td><span class="status gap">Not directly measured</span></td></tr>
+        <tr><td>Safety</td><td>Hazard-related risks are controlled where they apply to the product context.</td><td>Explicit hazard analysis and justified safety requirements.</td><td><span class="status gap">No pilot safety claim defined</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note warn"><b>Schema alignment before live routing:</b> the current <code>quality-model.yml</code> lists four weighted characteristics, while <code>tool-registry.yml</code> also maps probes to functional suitability. Reconcile the model and registry against the 2023 taxonomy before letting a controller route work by ISO characteristic.</div>
+  <p class="small">Coverage describes the artifacts available for this pilot, not ISO compliance. “Not measured” is a useful research result; it should not be silently converted into a passing score.</p>
+</section>
+
+<section id="loop">
+  <div class="kicker">One experiment at a time</div>
+  <h2>How the loop works</h2>
+  <div class="card">
+    <ol class="steps">
+      <li><strong>Freeze the contract and baseline.</strong> Choose the component, ISO characteristics in scope, required evidence, thresholds and maximum effort. Record the Firefox revision, build and tool versions. Run baseline probes before editing.</li>
+      <li><strong>Create an evidence-backed work item.</strong> A probe result becomes a structured issue with source tool, file and location, rule, observed severity, raw artifact reference, ISO mapping and confidence caveat. Retain the original output so normalization can be checked.</li>
+      <li><strong>Select one issue by policy.</strong> Muse Spark chooses one item from the eligible finding list; controller code checks that its ID is allowed, in scope and within the round budget. The model cannot invent issues or quality scores. Low-confidence or disputed findings can be sent to a human for triage.</li>
+      <li><strong>Propose one minimal change.</strong> Step 5 receives one finding, source context and applicable Firefox instructions. It returns a single-file diff and a causal hypothesis; code applies the diff only in an isolated candidate worktree. The current prototype does not ask the model to invent tests.</li>
+      <li><strong>Try to falsify the claim.</strong> The current executable loop reruns the selected ESLint, Semgrep or Lizard probe and touched-file lint before and after the diff. Broader risk-based verification can add New Tab Jest, xpcshell, browser tests and builds; those rings are not yet called by this controller.</li>
+      <li><strong>Apply non-compensatory gates.</strong> Reject on a new required-test failure, a scope violation, a failed security / correctness gate, or a measured regression beyond policy. A patch passes only when the claimed improvement is supported by comparable before/after evidence. An unavailable or inconclusive check is “unresolved,” not “pass.”</li>
+      <li><strong>Present a reviewable candidate.</strong> Preserve the patch, logs, evidence, model / prompt version and decision. A human decides whether to apply, revise or discard the candidate. Adoption triggers a new baseline; rejection keeps the evidence and ends that attempt.</li>
+    </ol>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <article class="card">
+      <h3 style="margin-top:0">Evidence object</h3>
+      <p class="small">A compact data shape that makes a claim traceable from tool output to decision:</p>
+      <pre><code>{
+  "run": "uuid",
+  "revision": "firefox-commit",
+  "probe": {"name": "semgrep", "version": "…", "command": "…"},
+  "observation": {"path": "…", "line": 176, "rule": "…"},
+  "iso": {"characteristic": "security", "subcharacteristic": "…"},
+  "artifact": {"path": "artifacts/…", "sha256": "…"},
+  "candidate": {"patch": "candidate.diff", "hypothesis": "…"},
+  "checks": [{"name": "targeted-scan", "base": "fail", "candidate": "pass"}],
+  "decision": "accept | reject | unresolved"
+}</code></pre>
+    </article>
+    <article class="card">
+      <h3 style="margin-top:0">Promotion ladder</h3>
+      <p><b>Always:</b> reproducer when one can be written, touched-file lint, diff and scope review.</p>
+      <p><b>Component risk:</b> New Tab Jest suite and relevant xpcshell tests. Compare new failures against the baseline.</p>
+      <p><b>High impact:</b> browser tests, build, bundle / prerender outputs, and metrics / channel compatibility checks when touched.</p>
+      <p class="small">These are escalating verification sets, not a promise that every tier ran. The current <code>ring_runner.py</code> describes commands for the tiers; the live R1 record did not execute the dynamic tiers.</p>
+    </article>
+  </div>
+  <div class="note good"><b>Stop conditions:</b> no eligible issue remains; all scoped gates pass; the candidate fails a hard gate; evidence is inconclusive; an iteration / time / model budget is exhausted; or repeated experiments stop producing measured improvement. Repeating an identical patch is not progress.</div>
+</section>
+
+<section id="example">
+  <div class="kicker">Concrete trace</div>
+  <h2>What one Firefox example looks like</h2>
+  <p>The October 14 artifact set contains a narrow static-analysis example in <code>browser/extensions/newtab/lib/SectionsManager.sys.mjs</code>. It is useful for showing the evidence path, while also showing what remains unverified.</p>
+  <div class="card">
+    <div class="grid3">
+      <div class="metric"><b>1 · Observation</b><span>Semgrep raised two <code>Object.assign</code> warnings in the file. Inspection distinguished a fresh-object assignment from the reported sink.</span></div>
+      <div class="metric"><b>2 · Candidate</b><span>A one-line property assignment replaced the flagged call at the affected location. The separate fresh-object case was left unchanged.</span></div>
+      <div class="metric"><b>3 · Static evidence</b><span>The file re-scan changed from two findings to zero. The touched-file lint artifact reports zero problems. The Codex reviewer returned PASS with the supplied evidence.</span></div>
+    </div>
+    <div class="note warn" style="margin-bottom:0"><b>Limit of this result:</b> this supports a narrow static-finding claim for the file. New Tab Jest, xpcshell, browser tests and a build were not run in the recorded R1 flow. It is not evidence that the complete agent loop is already implemented or that every ISO characteristic improved.</div>
+  </div>
+  <div class="note risk"><b>Prototype boundary:</b> the model CLIs are now wired. The executable loop verifies supported ESLint, Semgrep and Lizard findings plus touched-file lint in an isolated worktree. It does not yet run the full New Tab Jest, xpcshell, browser-test or build rings. It records no ISO score from model output.</div>
+</section>
+
+<section id="implementation">
+  <div class="kicker">Fit to this repository</div>
+  <h2>What runs now and what remains future work</h2>
+  <p>The prototype now makes bounded calls to Muse Spark, Step 5 and GPT-6 Luna. It keeps a human adoption boundary and replaces mock score changes with before/after probe evidence. Broader Firefox test rings and complete ISO measurement coverage remain future work.</p>
+  <div class="card table-scroll">
+    <table>
+      <thead><tr><th>Artifact</th><th>Current job</th><th>Next extension</th></tr></thead>
+      <tbody>
+        <tr><td><code>loop/quality-model.yml</code></td><td>Four weighted categories and project-local numeric gates.</td><td>Make the 2023 ISO taxonomy explicit; mark each characteristic measured, partial or out of scope. Calibrate local thresholds and avoid presenting weights as ISO.</td></tr>
+        <tr><td><code>loop/tool-registry.yml</code></td><td>Maps twelve configured probes to measures and ISO labels.</td><td>Keep as the adapter catalog. Add provenance, version, scope, reproducibility and evidence-strength metadata.</td></tr>
+        <tr><td><code>loop/normalize.py</code></td><td>Converts selected lint / Semgrep outputs into tagged issues and filters accepted false positives.</td><td>Emit validated evidence records that link raw output and retain the reason for any suppression. A model suggestion alone cannot suppress a finding.</td></tr>
+        <tr><td><code>loop/graph.py</code></td><td>Legacy graph demonstration with mock checkpoints.</td><td>Not used by the wired CLI flow. The live loop writes ordered <code>events.jsonl</code>, baseline metadata and per-run artifacts instead.</td></tr>
+        <tr><td><code>loop/orchestrator.py</code></td><td>Calls the configured model CLIs, applies candidate diffs in a temporary Git worktree, reruns a supported probe and touched-file lint, then asks Codex for a read-only review.</td><td>Extend deterministic probe adapters and add risk-based Jest, xpcshell, browser-test and build rings. Keep ISO values tied to measured evidence.</td></tr>
+        <tr><td><code>loop/ring_runner.py</code></td><td>Defines lint, Jest, xpcshell, browser and build commands by ring.</td><td>Available for later broader verification. The current model loop does not invoke these full rings.</td></tr>
+        <tr><td><code>loop/agents.yml</code> + schemas</td><td>Bind Muse Spark 1.3, Step 5 and GPT-6 Luna to bounded roles and structured outputs.</td><td>Version prompts, models, schemas and evidence policies together for reproducible comparisons.</td></tr>
+        <tr><td><code>loop/quality-ledger.md</code></td><td>Human-readable run notes and a score table.</td><td>Record verified measure deltas, hard-gate outcome, unresolved checks and links to immutable run evidence. Do not enter model-invented scores.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <article class="card">
+      <h3 style="margin-top:0">Run artifacts produced today</h3>
+      <ul class="tight">
+        <li><code>baseline.json</code> + <code>baseline-overlay.patch</code>: base revision and tracked local-change hash.</li>
+        <li><code>events.jsonl</code>: ordered model, probe, review and decision events.</li>
+        <li><code>models/</code>: per-round prompt, CLI output and stderr logs.</li>
+        <li><code>evidence/</code>: before / after probe and lint logs.</li>
+        <li><code>patches/</code> + <code>decision.json</code>: proposed diffs, measurements, reviewer notes and outcome.</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3 style="margin-top:0">Implementation boundary</h3>
+      <p>Run preflight first, then pass <code>--execute</code> to call the models and probes. The loop copies tracked local changes into a detached Git worktree, applies the model diff there, and records every prompt, response, check and decision under <code>loop/artifacts/runs/</code>. It refuses to start when untracked Firefox files could be omitted. Automatic adoption, merge, push and submission stay outside the loop.</p>
+      <p class="small">The running workflow is one controller, three distinct model roles, static verification, a read-only independent critic and a human adoption decision. Only the targeted static probe and lint run today; full Firefox test rings remain future work.</p>
+    </article>
+  </div>
+</section>
+
+<section id="research">
+  <div class="kicker">Research contribution</div>
+  <h2>Make a falsifiable claim, then test it</h2>
+  <div class="card">
+    <p class="lead" style="font-size:17px"><b>Research question:</b> On Firefox New Tab maintenance tasks, does an evidence-gated patch loop increase the share of changes that are independently verified without increasing regressions, compared with a one-shot coding agent under the same model and tool budget?</p>
+    <div class="two-col-list">
+      <div class="metric"><b>Primary outcomes</b><span>Issue reproducer fixed; relevant tests pass; regression rate; scope-policy violations; accepted-patch correctness under human review.</span></div>
+      <div class="metric"><b>Quality outcomes</b><span>Per-characteristic measure changes only where valid probes exist. Report unmeasured quality as a gap, not a zero or a pass.</span></div>
+      <div class="metric"><b>System outcomes</b><span>Wall time, tool / model cost, retries, tests run, evidence completeness and reproducibility.</span></div>
+      <div class="metric"><b>Experimental design</b><span>Use held-out historical issues or patches; pin revision and environment; compare equal budgets; repeat stochastic runs; report uncertainty and failures.</span></div>
+    </div>
+    <h3>Ablations that answer “why?”</h3>
+    <p>Compare the full loop with: (1) one-shot patching, (2) no issue-specific reproducer, (3) no independent verifier, and (4) no event / evidence record. This tests which mechanism adds value, rather than assuming that adding more agents improves the result.</p>
+    <div class="note warn"><b>Threats to validity:</b> static-analysis counts are proxies; Mozilla test suites can be flaky; generated tests can encode the wrong expectation; quality trade-offs depend on New Tab users and product context; thresholds and issue selection can bias results. Keep raw artifacts, use held-out tasks, and have people validate the high-impact conclusions.</div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="kicker">Research grounding</div>
+  <h2>Sources and what they support</h2>
+  <p>These sources motivate the mechanisms. They do not prove this Firefox system works; that is the empirical question above.</p>
+  <ol class="source-list">
+    <li><a href="https://www.iso.org/standard/78176.html"><b>ISO/IEC 25010:2023 — Product quality model</b></a><span class="source-note">Primary standard page. Defines a nine-characteristic product-quality model and presents it as a reference for specifying, measuring and evaluating product quality. ISO defines the quality model, not the local Firefox thresholds or agent workflow.</span></li>
+    <li><a href="https://arxiv.org/abs/2511.03690"><b>Wang et al. “The OpenHands Software Agent SDK: A Composable and Extensible Foundation for Production Agents.” MLSys 2026.</b></a><span class="source-note">Primary research. Supports typed tool boundaries, a single event-sourced conversation state, replay / recovery and modular agent execution. Its reported deployment results belong to OpenHands, not this proposal.</span></li>
+    <li><a href="https://proceedings.neurips.cc/paper_files/paper/2024/hash/5a7c947568c1b1328ccc5230172e1e7c-Abstract-Conference.html"><b>Yang et al. “SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering.” NeurIPS 2024.</b></a><span class="source-note">Primary research. Supports designing repository navigation, editing and test execution as a useful agent-computer interface; it does not imply an agent should control release policy.</span></li>
+    <li><a href="https://proceedings.neurips.cc/paper_files/paper/2024/hash/94f093b41fc2666376fb1f667fe282f3-Abstract-Conference.html"><b>Mündler et al. “SWT-Bench: Testing and Validating Real-World Bug-Fixes with Code Agents.” NeurIPS 2024.</b></a><span class="source-note">Primary research. Finds issue-reproducing generated tests can filter candidate fixes; the paper reports a precision improvement on its benchmark. This motivates reproducer-first validation, not trusting agent-authored tests without checking them.</span></li>
+    <li><a href="https://proceedings.neurips.cc/paper_files/paper/2025/hash/d83c4a745789690f82e86d0ef752ae7c-Abstract-Datasets_and_Benchmarks_Track.html"><b>Zhang et al. “SWE-bench Goes Live!” NeurIPS 2025.</b></a><span class="source-note">Primary benchmark research. Motivates realistic, current repository tasks and reproducible execution environments when evaluating software agents.</span></li>
+    <li><a href="https://opencode.ai/docs/cli/"><b>OpenCode CLI documentation</b></a><span class="source-note">Documents non-interactive model invocation and JSON output used by the Muse Spark selector and Step 5 diff proposer.</span></li>
+    <li><a href="https://developers.openai.com/codex/cli/"><b>OpenAI Codex CLI documentation</b></a><span class="source-note">Documents schema-constrained output and sandbox options used for the GPT-6 Luna read-only review.</span></li>
+  </ol>
+</section>
+
+<section>
+  <div class="card">
+    <h2 style="font-size:21px">Closing summary</h2>
+    <p><b>Keep the architecture memorable:</b> define quality → measure → choose → patch → falsify → review. The contribution is not a clever swarm. It is a traceable method for turning a quality claim into an isolated change whose value must survive independent evidence.</p>
+    <p class="small">This report describes the target architecture and the executable model wiring in the local prototype, based on <code>loop/</code> artifacts on 14 October 2026.</p>
+  </div>
+</section>
+<footer>
+  <p>Prepared for a research presentation on agentic AI and software quality. Firefox scope is the New Tab / Activity Stream pilot; do not generalize the recorded probe results to all of Firefox.</p>
+</footer>
+</main>
+</body>
+</html>
+
+

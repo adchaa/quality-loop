@@ -1,0 +1,74 @@
+# AQUA — Assured QUality Adaptation loop. See aqua-architecture.html and AQUA.md.
+# The agent you start in T3 Code runs the `aqua` skill (skills/aqua/SKILL.md) and
+# orchestrates through its script; the subagents run through OpenCode.
+
+scope:
+  component: browser/extensions/newtab
+  extensions: [.js, .jsx, .mjs]
+  exclude:
+    - browser/extensions/newtab/prerendered/
+    - browser/extensions/newtab/test/
+    - browser/extensions/newtab/vendor/
+    - browser/extensions/newtab/data/
+    - browser/extensions/newtab/webext-glue/
+
+# ISO/IEC 25010:2023 characteristics treated as bandit arms in this pilot.
+# Their measures are defined in aqua/probes.py (MEASURES); all are lower-is-better.
+characteristics:
+  maintainability: {measures: [lint_maintainability, ccn_excess]}
+  security: {measures: [lint_security, semgrep_findings]}
+  interaction_capability: {measures: [lint_a11y]}
+# functional_suitability is guarded (parse_errors measure, F4 tests) but not an arm.
+# performance_efficiency needs Perfherder/Talos and is out of scope for the pilot.
+
+probes:
+  ccn_limit: 15            # Lizard: functions above this CCN are findings
+  semgrep: auto            # Semgrep ruleset (`auto` needs network + metrics); null disables it
+  timeout_seconds: 600
+
+# Subagents the orchestrator delegates to. Each runs as a read-only OpenCode agent
+# (`opencode run`) in the candidate worktree; `model` is any id from `opencode models`.
+# The orchestrator itself is NOT configured here: it is the agent the human starts
+# (see AQUA.md, "Start a session").
+agents:
+  timeout_seconds: 420
+  retries: 1
+  escalation_budget: 3     # max reviewer escalations per session
+  # I3: if no reviewer model differs from the implementer's, the reviewer is the same
+  # model in a separate, fresh context. Set true to refuse that instead.
+  require_different_reviewer_model: false
+  localizer: {model: opencode/deepseek-v4.1-flash-free}
+  # Implementer ensemble: candidate i uses implementers[(attempt + i) % len]. Add other
+  # models (`opencode models`) for a heterogeneous ensemble.
+  implementers:
+    - {model: opencode/deepseek-v4.1-flash-free}
+  # Reviewer = first entry whose model differs from the implementer's, else the first.
+  reviewers:
+    - {model: opencode/deepseek-v4.1-flash-free}
+  # Second opinion, only when the orchestrator escalates (counts against escalation_budget).
+  reviewer_escalation: {model: opencode/deepseek-v4.1-flash-free}
+  reporter: {model: opencode/deepseek-v4.1-flash-free}
+
+session:
+  rounds: 3                # findings per session (one round = one finding)
+  attempts_per_round: 3    # implementer delegations per round, revisions after review included
+  candidates: 2            # default N candidates per implementer delegation
+  max_candidates: 3
+  max_agent_calls: 40      # all subagent calls in a session
+  max_failures_per_finding: 2   # after this many failed rounds a finding is parked
+  keep_worktree: false     # the patch series is kept either way
+  idle_minutes: 120        # the control daemon stops (and cleans up) after this long without commands
+
+cascade:
+  max_changed_lines: 80
+  pareto_epsilon: {}       # per-measure noise tolerance, e.g. {ccn_excess: 0}; default 0
+  tests:
+    enabled: false         # F4. Needs `./mach npm install --prefix=browser/extensions/newtab` first
+    command: "./mach npm test --prefix=browser/extensions/newtab"
+    retries: 1             # flaky-aware: re-run once before rejecting
+    timeout_seconds: 1800
+
+bandit:
+  prior: [1, 1]            # Beta(alpha, beta) for every arm
+  seed: null               # set an int for reproducible experiments
+  arm_override: null       # ablation: "random" | "round_robin" | null (Thompson)

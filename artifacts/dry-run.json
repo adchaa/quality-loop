@@ -1,0 +1,14 @@
+{
+  "scores": {
+    "performance_efficiency": 80,
+    "interaction_capability": 80,
+    "security": 80,
+    "maintainability": 83
+  },
+  "patches": 3,
+  "rounds": 3,
+  "tokens": 14100,
+  "inject": "",
+  "loop_detected": null,
+  "calibrated": true
+}

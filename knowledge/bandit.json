@@ -1,0 +1,23 @@
+{
+  "interaction_capability": {
+    "accepted": 0,
+    "alpha": 1,
+    "beta": 1,
+    "pulls": 0,
+    "seconds": 0.0
+  },
+  "maintainability": {
+    "accepted": 7,
+    "alpha": 8,
+    "beta": 4,
+    "pulls": 8,
+    "seconds": 5750.299999999999
+  },
+  "security": {
+    "accepted": 0,
+    "alpha": 1,
+    "beta": 3,
+    "pulls": 2,
+    "seconds": 1033.0
+  }
+}

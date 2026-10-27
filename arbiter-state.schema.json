@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "L2ArbiterState",
+  "type": "object",
+  "required": ["round", "captains", "patches", "frontier"],
+  "properties": {
+    "round": { "type": "integer", "minimum": 0 },
+    "captains": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object",
+          "required": ["score_before", "score_after", "gate_pass"],
+          "properties": {
+            "score_before": { "type": "number" },
+            "score_after": { "type": "number" },
+            "gate_pass": { "type": "boolean" },
+            "patches_applied": { "type": "integer" },
+            "unresolved": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "patches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "characteristic", "regression_verdict", "score_deltas"],
+        "properties": {
+          "id": { "type": "string" },
+          "characteristic": { "type": "string" },
+          "regression_verdict": { "type": "string", "enum": ["pass", "fail", "quarantined"] },
+          "score_deltas": { "type": "object" },
+          "promoted": { "type": "boolean" }
+        }
+      }
+    },
+    "frontier": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{"verdict":"FAIL","feedback":"Reject: this directly mutates Redux state with `state.rows.push(action.data)`. The patch also lacks evidence that the reporting probe passes and that the diff is within the finding’s scope."}

@@ -1,0 +1,86 @@
+probes:
+  eslint:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: analysability
+    measure: lint_error_count
+    command: "./mach lint --format json {files}"
+    confidence: 0.95
+    scope: browser/extensions/newtab
+  eslint_a11y:
+    iso_characteristic: interaction_capability
+    iso_subcharacteristic: inclusiveness
+    measure: a11y_lint_error_count
+    command: "./mach lint --format json {files}"
+    confidence: 0.85
+    scope: browser/extensions/newtab/content-src
+  eslint_security:
+    iso_characteristic: security
+    iso_subcharacteristic: integrity
+    measure: security_rule_violation_count
+    command: "./mach lint --format json {files}"
+    confidence: 0.80
+    scope: browser/extensions/newtab
+  semgrep:
+    iso_characteristic: security
+    iso_subcharacteristic: integrity
+    measure: high_severity_finding_count
+    command: "semgrep --config auto --json --include='*.js' --include='*.jsx' --include='*.mjs' {path}"
+    confidence: 0.75
+    scope: browser/extensions/newtab
+  axe:
+    iso_characteristic: interaction_capability
+    iso_subcharacteristic: inclusiveness
+    measure: axe_critical_count
+    command: "npm run test:a11y --prefix=browser/extensions/newtab"
+    confidence: 0.80
+    scope: browser/extensions/newtab/content-src/components
+  jest:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: testability
+    measure: test_failure_count
+    command: "./mach npm test --prefix=browser/extensions/newtab"
+    confidence: 0.95
+    scope: browser/extensions/newtab/test/jest
+  xpcshell:
+    iso_characteristic: functional_suitability
+    iso_subcharacteristic: correctness
+    measure: test_failure_count
+    command: "./mach test browser/components/newtab/test/xpcshell"
+    confidence: 0.90
+    scope: browser/components/newtab/test/xpcshell
+  bundle_report:
+    iso_characteristic: performance_efficiency
+    iso_subcharacteristic: resource_utilisation
+    measure: bundle_kb
+    command: "./mach newtab bundle"
+    confidence: 0.90
+    scope: browser/extensions/newtab
+  lizard:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: analysability
+    measure: max_cyclomatic_complexity
+    command: "lizard -l javascript -C 12 {path}"
+    confidence: 0.70
+    scope: browser/extensions/newtab/content-src browser/extensions/newtab/lib
+  jscpd:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: reusability
+    measure: duplication_pct
+    command: "jscpd --min-tokens 80 --reporters json --output {artifacts} {path}"
+    confidence: 0.70
+    scope: browser/extensions/newtab/content-src browser/extensions/newtab/lib browser/extensions/newtab/common
+  knip:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: modifiability
+    measure: unused_export_count
+    command: "npx knip --reporter json"
+    confidence: 0.60
+    scope: browser/extensions/newtab
+  sonar_optional:
+    iso_characteristic: maintainability
+    iso_subcharacteristic: analysability
+    measure: code_smell_count
+    command: "sonar-scanner -Dsonar.sources=browser/extensions/newtab"
+    confidence: 0.50
+    scope: browser/extensions/newtab
+    note: optional aggregator only, never a gate on its own

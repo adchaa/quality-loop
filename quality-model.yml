@@ -1,0 +1,40 @@
+characteristics:
+  performance_efficiency:
+    weight: 0.30
+    subcharacteristics: [time_behaviour, resource_utilisation]
+    gates:
+      bundle_kb_max: 900
+      jest_p95_s_max: 60
+      lighthouse_performance_min: 85
+  interaction_capability:
+    weight: 0.25
+    subcharacteristics: [operability, inclusiveness]
+    gates:
+      axe_critical_max: 0
+      a11y_lint_errors_max: 0
+  security:
+    weight: 0.25
+    subcharacteristics: [confidentiality, integrity]
+    gates:
+      semgrep_high_max: 0
+      eslint_security_errors_max: 0
+  maintainability:
+    weight: 0.20
+    subcharacteristics: [modularity, reusability, analysability, modifiability, testability]
+    gates:
+      complexity_per_function_max: 12
+      duplication_pct_max: 5
+      eslint_errors_max: 0
+
+budgets:
+  max_l2_rounds: 3
+  patches_per_captain_per_round: 5
+  stall_epsilon: 0.01
+  l0_retries_per_issue: 3
+
+scope:
+  component: browser/extensions/newtab
+  exclude:
+    - browser/extensions/newtab/prerendered/**
+    - browser/extensions/newtab/test/**
+    - browser/components/newtab/**

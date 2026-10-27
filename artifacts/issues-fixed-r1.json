@@ -1,0 +1,24 @@
+[
+ {
+  "probe": "semgrep",
+  "path": "browser/extensions/newtab/lib/SectionsManager.sys.mjs",
+  "line": 172,
+  "rule": "javascript.lang.security.insecure-object-assign.insecure-object-assign",
+  "severity": "WARNING",
+  "message": "Depending on the context, user control data in `Object.assign` can cause web response to include data that it should not have or can lead to a mass assignment vulnerability.",
+  "iso_characteristic": "security",
+  "iso_subcharacteristic": "integrity",
+  "verify_cmd": "re-run semgrep on browser/extensions/newtab/lib/SectionsManager.sys.mjs"
+ },
+ {
+  "probe": "semgrep",
+  "path": "browser/extensions/newtab/lib/SectionsManager.sys.mjs",
+  "line": 176,
+  "rule": "javascript.lang.security.insecure-object-assign.insecure-object-assign",
+  "severity": "WARNING",
+  "message": "Depending on the context, user control data in `Object.assign` can cause web response to include data that it should not have or can lead to a mass assignment vulnerability.",
+  "iso_characteristic": "security",
+  "iso_subcharacteristic": "integrity",
+  "verify_cmd": "re-run semgrep on browser/extensions/newtab/lib/SectionsManager.sys.mjs"
+ }
+]

@@ -1,0 +1,3246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      AQUA — an assured quality-adaptation loop for Firefox (ISO/IEC 25010:2023)
+    </title>
+    <style>
+      :root {
+        --x-bg: #ffffff;
+        --x-fg: #1c2128;
+        --x-muted: #5b6573;
+        --x-card: #f5f7fa;
+        --x-border: #d8dee6;
+        --x-c1: #2f6fdb;
+        --x-c2: #0f9d8a;
+        --x-c3: #d9822b;
+        --x-c4: #8a4fd6;
+        --x-bad: #d64545;
+        --x-good: #1f9d55;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --x-bg: #14171c;
+          --x-fg: #e6e9ee;
+          --x-muted: #9aa4b2;
+          --x-card: #1d2229;
+          --x-border: #333b46;
+          --x-c1: #6b9cf0;
+          --x-c2: #3cc4b0;
+          --x-c3: #f0a35a;
+          --x-c4: #b38af0;
+          --x-bad: #f07070;
+          --x-good: #4cc985;
+        }
+      }
+      :root {
+        --fg: var(--foreground, var(--x-fg));
+        --muted-fg: var(--muted-foreground, var(--x-muted));
+        --surface: var(--card, var(--x-card));
+        --line: var(--border, var(--x-border));
+        --outer: var(--chart-1, var(--x-c1));
+        --inner: var(--chart-2, var(--x-c2));
+        --gate: var(--chart-3, var(--x-c3));
+        --know: var(--chart-4, var(--x-c4));
+        --bad: var(--destructive, var(--x-bad));
+        --good: var(--success, var(--x-good));
+        --r: var(--radius, 10px);
+      }
+      html,
+      body {
+        margin: 0;
+        color: var(--fg);
+        font-family: var(
+          --font-sans,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif
+        );
+        line-height: 1.55;
+      }
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.75rem;
+        margin: 0 0 0.3rem;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 1.25rem;
+        margin: 2.6rem 0 0.6rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--line);
+      }
+      h3 {
+        font-size: 1rem;
+        margin: 1.3rem 0 0.4rem;
+      }
+      p,
+      li {
+        font-size: 0.95rem;
+      }
+      .sub {
+        color: var(--muted-fg);
+        margin: 0 0 1rem;
+      }
+      .rule {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        font-weight: 600;
+        background: var(--surface);
+      }
+      .rule b {
+        color: var(--gate);
+      }
+      .cit {
+        color: var(--muted-fg);
+        font-size: 0.78rem;
+        text-decoration: none;
+        vertical-align: super;
+      }
+      .cit:hover {
+        text-decoration: underline;
+      }
+      .cite {
+        color: var(--muted-fg);
+        font-size: 0.82rem;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.05rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid currentColor;
+        vertical-align: middle;
+      }
+      .t-outer {
+        color: var(--outer);
+      }
+      .t-inner {
+        color: var(--inner);
+      }
+      .t-gate {
+        color: var(--gate);
+      }
+      .t-know {
+        color: var(--know);
+      }
+      figure {
+        margin: 1rem 0 1.4rem;
+      }
+      figure svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      figcaption {
+        font-size: 0.82rem;
+        color: var(--muted-fg);
+        margin-top: 0.4rem;
+      }
+      svg text {
+        fill: var(--fg);
+        font-family: inherit;
+      }
+      svg .muted {
+        fill: var(--muted-fg);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 0.8rem;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 16px;
+      }
+      .card h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.92rem;
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.85rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+        margin: 0.5rem 0 1rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.55rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted-fg);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .vec {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 0.82rem;
+      }
+      .up {
+        color: var(--good);
+        font-weight: 700;
+      }
+      .down {
+        color: var(--bad);
+        font-weight: 700;
+      }
+      .eq {
+        color: var(--muted-fg);
+      }
+      .verdict {
+        font-weight: 700;
+        margin-top: 0.5rem;
+        font-size: 0.88rem;
+      }
+      .ok {
+        color: var(--good);
+      }
+      .no {
+        color: var(--bad);
+      }
+      ol.refs li {
+        font-size: 0.82rem;
+        margin-bottom: 0.3rem;
+      }
+      .quote {
+        border-left: 3px solid var(--gate);
+        padding: 0.3rem 0.9rem;
+        margin: 1rem 0;
+        font-style: italic;
+      }
+      .say {
+        border-left: 3px solid var(--inner);
+        padding: 0.45rem 0.9rem;
+        margin: 1rem 0;
+        background: var(--surface);
+        border-radius: 0 var(--r) var(--r) 0;
+        font-size: 0.88rem;
+      }
+      .say b {
+        color: var(--inner);
+      }
+      code {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 0.85em;
+      }
+      .hero {
+        padding: 4px 0 2px;
+      }
+      .hero .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin: 0.6rem 0 0;
+      }
+      .hero .pill {
+        font-size: 0.74rem;
+        color: var(--muted-fg);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.12rem 0.6rem;
+      }
+      body {
+        background: var(--background, var(--x-bg));
+      }
+      main {
+        padding: 2.5rem 1.5rem 4rem;
+      }
+
+      /* Light mode: paper sheet on a soft canvas, crisper accents, depth on cards. */
+      @media (prefers-color-scheme: light) {
+        :root {
+          --x-fg: #17202b;
+          --x-muted: #5a6575;
+          --x-card: #f6f8fb;
+          --x-border: #e3e8ef;
+          --x-c1: #2563eb;
+          --x-c2: #0b8a76;
+          --x-c3: #c2620c;
+          --x-c4: #7c3aed;
+          --x-bad: #d03b3b;
+          --x-good: #15803d;
+          --shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+        }
+        body {
+          background: #eef1f5;
+        }
+        main {
+          background: #fff;
+          margin: 2rem auto;
+          padding: 3rem 3.5rem 4rem;
+          border: 1px solid #e3e8ef;
+          border-radius: 16px;
+          box-shadow:
+            0 1px 3px rgba(16, 24, 40, 0.05),
+            0 12px 32px -8px rgba(16, 24, 40, 0.08);
+        }
+        h1 {
+          font-size: 2rem;
+          letter-spacing: -0.02em;
+        }
+        h2 {
+          border-top: none;
+          padding-top: 0;
+          margin-top: 3rem;
+          padding-left: 0.75rem;
+          border-left: 4px solid var(--outer);
+        }
+        h3 {
+          color: #273244;
+        }
+        .rule {
+          background: linear-gradient(180deg, #fff, #f6f8fb);
+          box-shadow: var(--shadow);
+        }
+        .hero .pill {
+          background: #f6f8fb;
+          color: #475263;
+        }
+        .card {
+          background: #fff;
+          box-shadow: var(--shadow);
+          transition:
+            box-shadow 0.15s,
+            border-color 0.15s;
+        }
+        .card:hover {
+          border-color: #cfd7e2;
+          box-shadow: 0 4px 14px -4px rgba(16, 24, 40, 0.12);
+        }
+        .tag {
+          background: color-mix(in srgb, currentColor 8%, #fff);
+        }
+        table {
+          border: 1px solid var(--line);
+          border-radius: var(--r);
+          border-collapse: separate;
+          border-spacing: 0;
+          overflow: hidden;
+        }
+        th {
+          background: #f6f8fb;
+          color: #475263;
+        }
+        tbody tr:nth-child(even) td {
+          background: #fbfcfd;
+        }
+        tr:last-child td {
+          border-bottom: none;
+        }
+        figure {
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          padding: 1.25rem 1.25rem 0.9rem;
+          box-shadow: var(--shadow);
+        }
+        figcaption {
+          border-top: 1px solid var(--line);
+          padding-top: 0.6rem;
+          margin-top: 0.8rem;
+        }
+        .quote {
+          background: color-mix(in srgb, var(--gate) 6%, #fff);
+          border-radius: 0 var(--r) var(--r) 0;
+          padding: 0.6rem 1rem;
+          color: #3a4556;
+        }
+        .say {
+          background: color-mix(in srgb, var(--inner) 6%, #fff);
+        }
+        code {
+          background: #f1f4f8;
+          border: 1px solid #e3e8ef;
+          border-radius: 4px;
+          padding: 0.05em 0.3em;
+        }
+        .cit {
+          color: var(--outer);
+          opacity: 0.75;
+        }
+      }
+      @media (max-width: 720px) {
+        main {
+          margin: 0;
+          padding: 1.5rem 1rem 3rem;
+          border-radius: 0;
+          border: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- ============================================================ -->
+      <!-- HERO                                                          -->
+      <!-- ============================================================ -->
+      <header class="hero">
+        <h1>AQUA: an assured quality-adaptation loop for Firefox</h1>
+        <p class="sub">
+          Improving Firefox against ISO/IEC 25010:2023 with LLM agents,
+          measurement gates, and a knowledge base that learns. Pilot scope:
+          <code>browser/extensions/newtab</code>. — 16 October 2026
+        </p>
+        <p>
+          <span class="rule"
+            >LLMs <b>propose</b>. Measurements <b>decide</b>. Humans
+            <b>adopt</b>.</span
+          >
+        </p>
+        <div class="pills">
+          <span class="pill">ISO/IEC 25010:2023 · 25023 · 25040 · 25059</span>
+          <span class="pill">MAPE-K outer loop</span>
+          <span class="pill"
+            >Your agent + the aqua skill + OpenCode subagents</span
+          >
+          <span class="pill"
+            >Review agent after implementation · report agent for humans</span
+          >
+          <span class="pill">Assurance cascade</span>
+          <span class="pill">Thompson-sampling planner</span>
+          <span class="pill"
+            >Firefox-native promotion: try → review → Nightly → Nimbus</span
+          >
+        </div>
+        <p class="quote" style="margin-top: 1rem">
+          A quality agent should not be allowed to declare its own change
+          “better.” In AQUA an orchestrator agent decides
+          <em>what to try</em> and delegates the work to specialised subagents —
+          but a deterministic control plane decides <em>what counts</em>, and a
+          human decides what is adopted.
+        </p>
+      </header>
+
+      <!-- ============================================================ -->
+      <!-- 1. WHY / DESIGN STANCE                                        -->
+      <!-- ============================================================ -->
+      <h2>1. Why a different architecture</h2>
+      <p>
+        The previous prototype in <code>loop/</code> is a straight pipeline: a
+        supervisor model picks a finding, a fixer model returns one diff, a
+        reviewer model reads it, and deterministic code checks a lint probe.
+        That design gets several things right (evidence over model claims,
+        isolated worktrees, human adoption), but it stands on assumptions that
+        current research no longer supports. AQUA is built by removing those
+        assumptions one at a time.
+      </p>
+
+      <div class="grid" style="margin: 1rem 0">
+        <div class="card">
+          <h4>Models overfit whatever we measure</h4>
+          <p>
+            Agentic repair is known to overfit test suites: patches that pass
+            the tests without fixing the defect.<a class="cit" href="#r19"
+              >[19]</a
+            ><a class="cit" href="#r20">[20]</a> A 2025 benchmark measures this
+            directly — given “impossible” tasks, capable models delete failing
+            tests, special-case inputs, or overload operators to pass anyway.<a
+              class="cit"
+              href="#r21"
+              >[21]</a
+            >
+            Reward hacking can also generalize into broader misbehavior.<a
+              class="cit"
+              href="#r22"
+              >[22]</a
+            ><a class="cit" href="#r23">[23]</a>
+          </p>
+        </div>
+        <div class="card">
+          <h4>Models do not self-verify</h4>
+          <p>
+            LLMs asked to check their own reasoning without external feedback
+            frequently make it worse.<a class="cit" href="#r17">[17]</a> LLM
+            judges systematically favor their own generations (self-preference
+            bias).<a class="cit" href="#r24">[24]</a> Juries of smaller, diverse
+            judges are a more trustworthy alternative to one big judge.<a
+              class="cit"
+              href="#r25"
+              >[25]</a
+            >
+          </p>
+        </div>
+        <div class="card">
+          <h4>Multi-agent pipelines fail structurally</h4>
+          <p>
+            An empirical taxonomy of multi-agent LLM failures catalogs 14
+            failure modes in three categories: specification gaps, inter-agent
+            misalignment, and task verification.<a class="cit" href="#r26"
+              >[26]</a
+            >
+            “More agents” is not a design; contracts, role separation, and
+            independent verification are.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Speed-ups must be measured, not assumed</h4>
+          <p>
+            A randomized trial with 16 experienced open-source maintainers found
+            AI assistance made them <em>19% slower</em> while they believed it
+            made them faster.<a class="cit" href="#r27">[27]</a> Any quality
+            loop must be evaluated on net outcomes, with baselines and error
+            bars, not on vibes.
+          </p>
+        </div>
+      </div>
+
+      <p>
+        At the same time, the capability is real and needs no exaggeration:
+        Agentless resolved 32% of SWE-bench Lite for $0.70 per issue with a
+        fixed localize–repair–validate workflow and no autonomous
+        decision-making.<a class="cit" href="#r9">[9]</a> At Google, an agentic
+        repair baseline produced plausible patches (passing the bug’s tests) for
+        73% of machine-reported bugs.<a class="cit" href="#r15">[15]</a> At
+        Meta, assured test-improvement shipped to production with 73% of
+        recommendations accepted by engineers.<a class="cit" href="#r7">[7]</a>
+        The problem is not whether LLMs can write patches; it is
+        <em>what decides that a patch is an improvement</em>.
+      </p>
+
+      <div class="say">
+        <b>Say it like this:</b> “Two findings motivate everything that follows.
+        First, agents happily optimize the metric instead of the goal — so our
+        metric must be hard to game and externally checked. Second, agents can't
+        reliably grade their own work — so the grader is never the author.”
+      </div>
+
+      <h3>Six design requirements</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Requirement</th>
+            <th>Answer in AQUA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>R1</td>
+            <td>
+              One source of truth for quality: measured evidence, never model
+              opinion.
+            </td>
+            <td>
+              Quality vector <span class="vec">q</span> built only from probe
+              outputs; no LLM produces a score anywhere.<a
+                class="cit"
+                href="#r2"
+                >[2]</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>R2</td>
+            <td>
+              Non-compensatory gates: a gain in one characteristic can never
+              cancel a loss in another.
+            </td>
+            <td>
+              Pareto acceptance on <span class="vec">q</span> + hard gates; no
+              weighted sums.<a class="cit" href="#r6">[6]</a>
+            </td>
+          </tr>
+          <tr>
+            <td>R3</td>
+            <td>
+              Separation of roles: author ≠ verifier ≠ decider; diverse critics
+              over self-review.
+            </td>
+            <td>
+              Implementer ensemble, deterministic cascade, a reviewer agent that
+              must be a <em>different model</em>, a reporter, and the human.<a
+                class="cit"
+                href="#r17"
+                >[17]</a
+              ><a class="cit" href="#r24">[24]</a
+              ><a class="cit" href="#r25">[25]</a>
+            </td>
+          </tr>
+          <tr>
+            <td>R4</td>
+            <td>Rules are enforced at runtime, not requested in prompts.</td>
+            <td>
+              The orchestrator acts only through the skill’s
+              <code>aqua</code> script, which calls a control daemon; the daemon
+              enforces invariants I1–I5 in code, in the style of AgentSpec
+              runtime enforcement.<a class="cit" href="#r32">[32]</a> Control
+              plane and data plane are separated, as in CaMeL’s defence against
+              prompt injection.<a class="cit" href="#r33">[33]</a>
+            </td>
+          </tr>
+          <tr>
+            <td>R5</td>
+            <td>
+              Everything reproducible and observable; uncertainty reported, not
+              hidden.
+            </td>
+            <td>
+              Event-sourced run record,<a class="cit" href="#r11">[11]</a> SARIF
+              findings,<a class="cit" href="#r37">[37]</a> OpenTelemetry GenAI
+              spans,<a class="cit" href="#r38">[38]</a> error bars on every
+              reported claim.<a class="cit" href="#r34">[34]</a>
+            </td>
+          </tr>
+          <tr>
+            <td>R6</td>
+            <td>The architecture itself must be falsifiable.</td>
+            <td>
+              Pre-registered RQs, equal-budget comparisons, ablations for every
+              mechanism (section 11).<a class="cit" href="#r27">[27]</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="cite">
+        Kept from the prototype because it earned its place: the tool probes and
+        <code>normalize.py</code>, isolated Git worktrees, the
+        accepted-false-positive list, the rule that a reviewer's PASS can never
+        override a failed gate, and the human adoption boundary.
+      </p>
+
+      <!-- ============================================================ -->
+      <!-- 2. QUALITY MODEL                                              -->
+      <!-- ============================================================ -->
+      <h2>2. Quality model: ISO/IEC 25010:2023, operationalized</h2>
+      <p>
+        ISO/IEC 25010:2023 defines nine product-quality characteristics and
+        renamed several from the 2011 edition (usability →
+        <em>interaction capability</em>, portability → <em>flexibility</em>) and
+        added <em>safety</em>.<a class="cit" href="#r1">[1]</a> ISO/IEC 25023
+        supplies the companion machinery: a catalogue of quality measures
+        attached to those characteristics and subcharacteristics — and it
+        deliberately does <em>not</em> assign numeric ranges or grades, because
+        those depend on the product and its context and must be chosen
+        locally.<a class="cit" href="#r2">[2]</a> ISO/IEC 25040 frames the
+        evaluation itself as a managed process.<a class="cit" href="#r3">[3]</a>
+      </p>
+      <p>
+        That division of labour is exactly AQUA's contract.
+        <b
+          >The standard gives the vocabulary; we give the numbers, in a
+          versioned file, and calibrate them empirically.</b
+        >
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h4>Quality is a vector, not a score</h4>
+          <div class="vec" style="margin: 0.4rem 0">
+            q = ( q<sub>func</sub>, q<sub>perf</sub>, q<sub>interact</sub>,
+            q<sub>sec</sub>, q<sub>maint</sub>, … )
+          </div>
+          <p>
+            Each component carries its own units and its own uncertainty. They
+            are never added into one number.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Acceptance is Pareto</h4>
+          <p>
+            A candidate is accepted only if
+            <b>no characteristic gets worse</b> and
+            <b>the target characteristic improves</b> beyond a noise floor ε.
+            Per-measure ε is calibrated from repeated runs.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Scope is declared, not implied</h4>
+          <p>
+            Characteristics outside the pilot are listed as out of scope with a
+            reason. Unmeasured quality is a gap, never a pass.
+          </p>
+        </div>
+        <div class="card">
+          <h4>The loop is itself a system to evaluate</h4>
+          <p>
+            ISO/IEC 25059 extends the SQuaRE quality model to AI systems;<a
+              class="cit"
+              href="#r4"
+              >[4]</a
+            >
+            section 11 applies it to AQUA: effectiveness, safety, cost,
+            oversight.
+          </p>
+        </div>
+      </div>
+
+      <h3>From characteristics to Firefox measurements</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ISO 25010:2023 characteristic</th>
+            <th>Sub-characteristic</th>
+            <th>Firefox probe → measure</th>
+            <th>Target for the loop</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Functional suitability</td>
+            <td>functional correctness</td>
+            <td>
+              <code>mach</code> Jest / xpcshell / mochitest suites → pass rate;
+              bug reproducer → fixed / not fixed
+            </td>
+            <td>
+              Reproducer flips 0→1 with a positive control; no new failures
+            </td>
+          </tr>
+          <tr>
+            <td>Performance efficiency</td>
+            <td>time behaviour, resource use</td>
+            <td>
+              Talos / Browsertime benchmarks recorded in Perfherder<a
+                class="cit"
+                href="#r40"
+                >[40]</a
+              >; New Tab bundle size (kB)
+            </td>
+            <td>No statistically significant regression</td>
+          </tr>
+          <tr>
+            <td>Interaction capability</td>
+            <td>inclusiveness, operability</td>
+            <td>
+              mochitest <code>a11y_checks</code
+              ><a class="cit" href="#r42">[42]</a>; axe; keyboard-operability
+              tests
+            </td>
+            <td>Violation count does not increase; target fixes reduce it</td>
+          </tr>
+          <tr>
+            <td>Security</td>
+            <td>confidentiality, integrity</td>
+            <td>
+              Semgrep rules; <code>eslint-plugin-no-unsanitized</code
+              ><a class="cit" href="#r43">[43]</a>; targeted security tests
+            </td>
+            <td>
+              Hard gate: no new high-severity findings; target finding resolved
+            </td>
+          </tr>
+          <tr>
+            <td>Maintainability</td>
+            <td>analysability, modifiability, testability</td>
+            <td>
+              ESLint; Lizard (cyclomatic complexity); jscpd (duplication);
+              mutation score where configured
+            </td>
+            <td>Target measure improves; nothing else degrades past ε</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="cite">
+        Explicitly out of scope for the pilot, and recorded as such in the
+        contract: compatibility, reliability, flexibility, safety (no applicable
+        hazard analysis for New Tab), and all quality-in-use characteristics.
+        Adding one back is a contract change, reviewed like code.
+      </p>
+
+      <div class="say">
+        <b>Say it like this:</b> “ISO tells us quality has nine faces. It
+        explicitly refuses to give us numbers, because numbers depend on the
+        product. So we write our own numbers — per measure, with noise floors —
+        and we never allow a big win on one face to buy silence on another. That
+        single design decision is what separates AQUA from a scoring rubric.”
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 3. ARCHITECTURE OVERVIEW                                      -->
+      <!-- ============================================================ -->
+      <h2>3. The architecture: two loops and a knowledge base</h2>
+      <p>
+        AQUA is a self-adaptive system in the classic MAPE-K sense: Monitor,
+        Analyze, Plan and Execute over shared Knowledge.<a
+          class="cit"
+          href="#r5"
+          >[5]</a
+        >
+        Its modern twist has two parts.
+      </p>
+      <ul>
+        <li>
+          <b>Who drives the loop.</b> An <em>orchestrator agent</em>, chosen and
+          started by the human, reads a playbook and drives the loop by
+          delegating to subagents.
+        </li>
+        <li>
+          <b>What the effector produces.</b> Not a deployment, but a
+          <em>proposal</em>. It must survive an assurance cascade, an
+          independent review agent and a human.
+        </li>
+      </ul>
+      <p>
+        Firefox is the managed system. Probes are the sensors. Reviewed patches
+        are the effectors. The knowledge base makes round
+        <span class="vec">n+1</span> smarter than round
+        <span class="vec">n</span>.
+      </p>
+
+      <figure>
+        <svg
+          viewBox="0 0 900 560"
+          role="img"
+          aria-label="MAPE-K outer loop around a knowledge base, with Firefox as the managed system"
+        >
+          <defs>
+            <marker
+              id="a1"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--outer)" />
+            </marker>
+            <marker
+              id="a1k"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--know)" />
+            </marker>
+            <marker
+              id="a1g"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--muted-fg)" />
+            </marker>
+          </defs>
+          <rect
+            x="20"
+            y="10"
+            width="860"
+            height="395"
+            rx="14"
+            fill="none"
+            stroke="var(--outer)"
+            stroke-dasharray="6 5"
+            opacity=".6"
+          />
+          <text
+            x="40"
+            y="34"
+            font-size="14"
+            font-weight="700"
+            style="fill: var(--outer)"
+          >
+            OUTER LOOP — MAPE-K (driven by the orchestrator agent, enforced by
+            the control plane)
+          </text>
+
+          <rect
+            x="70"
+            y="55"
+            width="250"
+            height="95"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--outer)"
+            stroke-width="2"
+          />
+          <text
+            x="195"
+            y="85"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+          >
+            MONITOR
+          </text>
+          <text
+            x="195"
+            y="108"
+            text-anchor="middle"
+            font-size="13"
+            class="muted"
+          >
+            run probes on a pinned revision
+          </text>
+          <text
+            x="195"
+            y="127"
+            text-anchor="middle"
+            font-size="13"
+            class="muted"
+          >
+            → typed findings + quality vector q
+          </text>
+
+          <rect
+            x="580"
+            y="55"
+            width="250"
+            height="95"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--outer)"
+            stroke-width="2"
+          />
+          <text
+            x="705"
+            y="85"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+          >
+            ANALYZE
+          </text>
+          <text
+            x="705"
+            y="108"
+            text-anchor="middle"
+            font-size="13"
+            class="muted"
+          >
+            scope · false-positive base · dedupe
+          </text>
+          <text
+            x="705"
+            y="127"
+            text-anchor="middle"
+            font-size="13"
+            class="muted"
+          >
+            map finding → ISO characteristic
+          </text>
+
+          <rect
+            x="580"
+            y="275"
+            width="250"
+            height="95"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--outer)"
+            stroke-width="2"
+          />
+          <text
+            x="705"
+            y="305"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+          >
+            PLAN
+          </text>
+          <text
+            x="705"
+            y="328"
+            text-anchor="middle"
+            font-size="13"
+            class="muted"
+          >
+            bandit suggests (Thompson sampling);
+          </text>
+          <text
+            x="705"
+            y="347"
+            text-anchor="middle"
+            font-size="13"
+            style="fill: var(--outer)"
+          >
+            orchestrator chooses, with a rationale
+          </text>
+
+          <rect
+            x="70"
+            y="275"
+            width="250"
+            height="95"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--inner)"
+            stroke-width="2.5"
+          />
+          <text
+            x="195"
+            y="305"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+          >
+            EXECUTE
+          </text>
+          <text
+            x="195"
+            y="328"
+            text-anchor="middle"
+            font-size="13"
+            style="fill: var(--inner)"
+          >
+            delegated: localize → implement ×N
+          </text>
+          <text
+            x="195"
+            y="347"
+            text-anchor="middle"
+            font-size="13"
+            style="fill: var(--inner)"
+          >
+            → measure F1–F5 → review → commit
+          </text>
+
+          <ellipse
+            cx="450"
+            cy="212"
+            rx="125"
+            ry="58"
+            fill="var(--surface)"
+            stroke="var(--know)"
+            stroke-width="2.5"
+          />
+          <text
+            x="450"
+            y="200"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+            style="fill: var(--know)"
+          >
+            KNOWLEDGE
+          </text>
+          <text
+            x="450"
+            y="221"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            quality ledger · FP base
+          </text>
+          <text
+            x="450"
+            y="238"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            fix playbook · bandit priors
+          </text>
+
+          <line
+            x1="320"
+            y1="102"
+            x2="576"
+            y2="102"
+            stroke="var(--outer)"
+            stroke-width="2.5"
+            marker-end="url(#a1)"
+          />
+          <text
+            x="448"
+            y="93"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            raw findings + q
+          </text>
+          <line
+            x1="705"
+            y1="150"
+            x2="705"
+            y2="271"
+            stroke="var(--outer)"
+            stroke-width="2.5"
+            marker-end="url(#a1)"
+          />
+          <text x="714" y="215" font-size="12" class="muted">issue set</text>
+          <line
+            x1="580"
+            y1="322"
+            x2="324"
+            y2="322"
+            stroke="var(--outer)"
+            stroke-width="2.5"
+            marker-end="url(#a1)"
+          />
+          <text
+            x="452"
+            y="313"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            1 finding + brief + budget
+          </text>
+
+          <line
+            x1="290"
+            y1="150"
+            x2="360"
+            y2="175"
+            stroke="var(--know)"
+            stroke-dasharray="4 4"
+            stroke-width="1.6"
+            marker-start="url(#a1k)"
+            marker-end="url(#a1k)"
+          />
+          <line
+            x1="610"
+            y1="150"
+            x2="540"
+            y2="175"
+            stroke="var(--know)"
+            stroke-dasharray="4 4"
+            stroke-width="1.6"
+            marker-start="url(#a1k)"
+            marker-end="url(#a1k)"
+          />
+          <line
+            x1="610"
+            y1="275"
+            x2="540"
+            y2="250"
+            stroke="var(--know)"
+            stroke-dasharray="4 4"
+            stroke-width="1.6"
+            marker-start="url(#a1k)"
+            marker-end="url(#a1k)"
+          />
+          <line
+            x1="290"
+            y1="275"
+            x2="360"
+            y2="250"
+            stroke="var(--know)"
+            stroke-dasharray="4 4"
+            stroke-width="1.6"
+            marker-start="url(#a1k)"
+            marker-end="url(#a1k)"
+          />
+
+          <rect
+            x="70"
+            y="450"
+            width="760"
+            height="70"
+            rx="10"
+            fill="none"
+            stroke="var(--muted-fg)"
+            stroke-width="2"
+          />
+          <text
+            x="450"
+            y="480"
+            text-anchor="middle"
+            font-size="16"
+            font-weight="700"
+          >
+            MANAGED SYSTEM — Firefox source tree (isolated candidate worktree)
+          </text>
+          <text
+            x="450"
+            y="502"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            mach lint · Semgrep · Lizard · node --check · Jest (F4, optional)
+          </text>
+
+          <path
+            d="M70,485 L40,485 L40,102 L66,102"
+            stroke="var(--muted-fg)"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#a1g)"
+          />
+          <text x="48" y="440" font-size="12" class="muted">
+            sensors (probes)
+          </text>
+          <path
+            d="M250,370 L250,446"
+            stroke="var(--inner)"
+            stroke-width="2.5"
+            fill="none"
+            marker-end="url(#a1g)"
+          />
+          <text x="258" y="425" font-size="12" style="fill: var(--inner)">
+            effector: reviewed patch → report → human
+          </text>
+          <text
+            x="450"
+            y="548"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            Reward fed back to KNOWLEDGE after each round: committed or not,
+            time spent, and later the human accept/reject.
+          </text>
+        </svg>
+        <figcaption>
+          Figure 1. The MAPE-K reference model for self-adaptive systems<a
+            class="cit"
+            href="#r5"
+            >[5]</a
+          >
+          applied to Firefox. Probes are sensors, reviewed patches are
+          effectors, and the knowledge base closes the learning loop.
+        </figcaption>
+      </figure>
+
+      <div
+        class="grid"
+        style="grid-template-columns: repeat(3, minmax(0, 1fr))"
+      >
+        <div class="card">
+          <h4><span class="tag t-outer">control plane</span></h4>
+          <p>
+            Deterministic code: the AQUA control daemon, reached only through
+            the skill’s <code>aqua</code> script. It enforces scope, budgets,
+            gates and the two-key commit. No model can mark a failed check
+            green.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-inner">reasoning plane</span></h4>
+          <p>
+            The orchestrator decides <em>what to try next</em>. Subagents
+            localize, implement, review and report. They are all read-only.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-gate">evidence plane</span></h4>
+          <p>
+            Probes and measurements produce the facts: findings, the quality
+            vector <span class="vec">q</span>, before/after logs, and the patch
+            series.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 4. ORCHESTRATION                                              -->
+      <!-- ============================================================ -->
+      <h2>
+        4. Orchestration: an agent that delegates, a controller that decides
+      </h2>
+      <p>
+        The human starts a conversation in T3 Code with the agent of their
+        choice (Claude Code, Codex, OpenCode, ...) and invokes one skill,
+        <code>aqua</code>. Its <code>SKILL.md</code> contains everything the
+        orchestrator needs: its rules, the commands, the protocol and the
+        decision heuristics. A script shipped with the skill is its only way to
+        act. From then on the orchestrator works like a tech lead. It chooses
+        findings, writes briefs and delegates to specialised subagents. It
+        decides when to retry, when to ask for a second opinion, and when to
+        give up.
+      </p>
+      <p>
+        This is the <em>orchestrator–workers</em> pattern<a
+          class="cit"
+          href="#r12"
+          >[12]</a
+        >
+        used by production multi-agent systems.<a class="cit" href="#r28"
+          >[28]</a
+        ><a class="cit" href="#r31">[31]</a> AQUA adds one rule: the
+        orchestrator can act <em>only</em> through tools, and the tools carry
+        the guarantees. This is the LLM-Modulo idea: LLMs generate and plan,
+        external verifiers decide.<a class="cit" href="#r30">[30]</a>
+      </p>
+
+      <figure>
+        <svg
+          viewBox="0 0 900 460"
+          role="img"
+          aria-label="Human starts an orchestrator agent that runs the aqua skill and delegates to four subagents"
+        >
+          <defs>
+            <marker
+              id="o1"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--outer)" />
+            </marker>
+            <marker
+              id="o2"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--inner)" />
+            </marker>
+            <marker
+              id="o3"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--good)" />
+            </marker>
+            <marker
+              id="o4"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--muted-fg)" />
+            </marker>
+          </defs>
+          <!-- playbook -->
+          <path
+            d="M30,20 H200 L225,45 V95 H30 Z"
+            fill="var(--surface)"
+            stroke="var(--muted-fg)"
+            stroke-width="1.8"
+          />
+          <path
+            d="M200,20 V45 H225"
+            fill="none"
+            stroke="var(--muted-fg)"
+            stroke-width="1.8"
+          />
+          <text
+            x="125"
+            y="52"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            skills/aqua/SKILL.md
+          </text>
+          <text
+            x="125"
+            y="72"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            rules · commands · protocol
+          </text>
+          <text
+            x="125"
+            y="87"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            heuristics · + scripts/aqua
+          </text>
+
+          <!-- human -->
+          <rect
+            x="660"
+            y="20"
+            width="200"
+            height="75"
+            rx="10"
+            fill="none"
+            stroke="var(--good)"
+            stroke-width="2.2"
+          />
+          <text
+            x="760"
+            y="45"
+            text-anchor="middle"
+            font-size="15"
+            font-weight="700"
+          >
+            HUMAN
+          </text>
+          <text
+            x="760"
+            y="64"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            picks the agent · invokes the skill
+          </text>
+          <text
+            x="760"
+            y="80"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            reads report · accepts / rejects
+          </text>
+
+          <!-- orchestrator -->
+          <rect
+            x="250"
+            y="125"
+            width="400"
+            height="95"
+            rx="12"
+            fill="var(--surface)"
+            stroke="var(--outer)"
+            stroke-width="2.6"
+          />
+          <text
+            x="450"
+            y="153"
+            text-anchor="middle"
+            font-size="17"
+            font-weight="700"
+            style="fill: var(--outer)"
+          >
+            ORCHESTRATOR AGENT
+          </text>
+          <text
+            x="450"
+            y="175"
+            text-anchor="middle"
+            font-size="12"
+            class="muted"
+          >
+            your agent (via T3 Code) — no edits; shell = aqua script only
+          </text>
+          <text x="450" y="195" text-anchor="middle" font-size="12">
+            chooses findings · writes briefs · delegates
+          </text>
+          <text x="450" y="211" text-anchor="middle" font-size="12">
+            retries · escalates · gives up · finishes
+          </text>
+
+          <line
+            x1="190"
+            y1="95"
+            x2="290"
+            y2="121"
+            stroke="var(--muted-fg)"
+            stroke-width="2"
+            marker-end="url(#o4)"
+          />
+          <text x="200" y="122" font-size="11" class="muted">reads</text>
+          <line
+            x1="700"
+            y1="95"
+            x2="610"
+            y2="121"
+            stroke="var(--good)"
+            stroke-width="2"
+            marker-end="url(#o3)"
+          />
+          <text x="668" y="122" font-size="11" style="fill: var(--good)">
+            starts
+          </text>
+
+          <!-- delegation bus -->
+          <g stroke="var(--inner)" stroke-width="2" fill="none">
+            <path d="M450,220 V250 M127,250 H772" />
+            <line x1="127" y1="250" x2="127" y2="281" marker-end="url(#o2)" />
+            <line x1="342" y1="250" x2="342" y2="281" marker-end="url(#o2)" />
+            <line x1="557" y1="250" x2="557" y2="281" marker-end="url(#o2)" />
+            <line x1="772" y1="250" x2="772" y2="281" marker-end="url(#o2)" />
+          </g>
+          <text x="137" y="243" font-size="11" style="fill: var(--inner)">
+            delegate (read-only subagents)
+          </text>
+
+          <g transform="translate(0,-140)">
+            <!-- subagents -->
+            <g>
+              <rect
+                x="30"
+                y="425"
+                width="195"
+                height="88"
+                rx="10"
+                fill="var(--surface)"
+                stroke="var(--inner)"
+                stroke-width="2"
+              />
+              <text
+                x="127"
+                y="451"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="700"
+              >
+                LOCALIZER
+              </text>
+              <text
+                x="127"
+                y="471"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                ReAct + probe tools (MCP)
+              </text>
+              <text
+                x="127"
+                y="487"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                region · risks · strategy
+              </text>
+              <text
+                x="127"
+                y="503"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                OpenCode
+              </text>
+
+              <rect
+                x="252"
+                y="417"
+                width="195"
+                height="88"
+                rx="10"
+                fill="var(--surface)"
+                stroke="var(--inner)"
+                stroke-width="1.4"
+                opacity=".55"
+              />
+              <rect
+                x="245"
+                y="425"
+                width="195"
+                height="88"
+                rx="10"
+                fill="var(--surface)"
+                stroke="var(--inner)"
+                stroke-width="2"
+              />
+              <text
+                x="342"
+                y="451"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="700"
+              >
+                IMPLEMENTERS ×N
+              </text>
+              <text
+                x="342"
+                y="471"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                heterogeneous model ensemble
+              </text>
+              <text
+                x="342"
+                y="487"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                search/replace edits + hypothesis
+              </text>
+              <text
+                x="342"
+                y="503"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                OpenCode, in parallel
+              </text>
+
+              <rect
+                x="460"
+                y="425"
+                width="195"
+                height="88"
+                rx="10"
+                fill="var(--surface)"
+                stroke="var(--inner)"
+                stroke-width="2"
+              />
+              <text
+                x="557"
+                y="451"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="700"
+              >
+                REVIEWER
+              </text>
+              <text
+                x="557"
+                y="471"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                after implementation + measurement
+              </text>
+              <text
+                x="557"
+                y="487"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                approve · request changes · reject
+              </text>
+              <text
+                x="557"
+                y="503"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                fresh context · escalation
+              </text>
+
+              <rect
+                x="675"
+                y="425"
+                width="195"
+                height="88"
+                rx="10"
+                fill="var(--surface)"
+                stroke="var(--inner)"
+                stroke-width="2"
+              />
+              <text
+                x="772"
+                y="451"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="700"
+              >
+                REPORTER
+              </text>
+              <text
+                x="772"
+                y="471"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                after the session
+              </text>
+              <text
+                x="772"
+                y="487"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                human-readable report
+              </text>
+              <text
+                x="772"
+                y="503"
+                text-anchor="middle"
+                font-size="11"
+                class="muted"
+              >
+                OpenCode
+              </text>
+            </g>
+          </g>
+
+          <!-- report path to human -->
+          <path
+            d="M870,329 L888,329 L888,57 L864,57"
+            fill="none"
+            stroke="var(--good)"
+            stroke-width="2"
+            marker-end="url(#o3)"
+          />
+          <text
+            x="878"
+            y="190"
+            font-size="11"
+            style="fill: var(--good)"
+            text-anchor="middle"
+            transform="rotate(90 878 190)"
+          >
+            report.md + patch series
+          </text>
+
+          <g transform="translate(0,-140)">
+            <!-- worktree -->
+            <rect
+              x="30"
+              y="540"
+              width="840"
+              height="44"
+              rx="8"
+              fill="none"
+              stroke="var(--muted-fg)"
+              stroke-width="1.6"
+              stroke-dasharray="5 4"
+            />
+            <text
+              x="450"
+              y="560"
+              text-anchor="middle"
+              font-size="13"
+              font-weight="700"
+            >
+              Firefox candidate worktree (detached git worktree)
+            </text>
+            <text
+              x="450"
+              y="576"
+              text-anchor="middle"
+              font-size="11"
+              class="muted"
+            >
+              probes measure here · the user’s checkout is never touched
+            </text>
+          </g>
+        </svg>
+        <figcaption>
+          Figure 2. Who does what. The orchestrator plans and delegates
+          (orchestrator–workers<a class="cit" href="#r12">[12]</a>, lead agent
+          and subagents<a class="cit" href="#r28">[28]</a>, Magentic-One<a
+            class="cit"
+            href="#r31"
+            >[31]</a
+          >). Its only interface is MCP tools.<a class="cit" href="#r36"
+            >[36]</a
+          >
+          It delegates to role-specialised subagents, an approach that echoes
+          the SOP roles of MetaGPT and ChatDev.<a class="cit" href="#r35"
+            >[35]</a
+          ><a class="cit" href="#r45">[45]</a>
+        </figcaption>
+      </figure>
+
+      <h3>Why the orchestrator is an agent, and why that is still safe</h3>
+      <div class="grid">
+        <div class="card">
+          <h4>What the agent adds</h4>
+          <div style="font-size: 0.85rem">
+            Judgment that is hard to script:
+            <ul>
+              <li>skipping a likely false positive;</li>
+              <li>avoiding a model that keeps timing out;</li>
+              <li>sharpening a brief after an F3 rejection;</li>
+              <li>escalating a dubious review.</li>
+            </ul>
+            Fixed pipelines cannot adapt like this.<a class="cit" href="#r9"
+              >[9]</a
+            ><a class="cit" href="#r44">[44]</a>
+          </div>
+        </div>
+        <div class="card">
+          <h4>What the agent cannot do</h4>
+          <p>
+            It cannot edit files, run shell commands or spawn its own helpers
+            (all denied by the harness). It cannot commit without the two keys
+            or exceed a budget. Every “no” comes from code, not from the prompt.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Failure modes, designed out</h4>
+          <div style="font-size: 0.85rem">
+            The multi-agent failure taxonomy<a class="cit" href="#r26">[26]</a>
+            lists missing specifications, inter-agent misalignment and missing
+            verification. In AQUA:
+            <ul>
+              <li>the playbook is the specification;</li>
+              <li>
+                the controller builds every subagent prompt from evidence;
+              </li>
+              <li>verification never depends on an agent’s word.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Swappable, so it is measurable</h4>
+          <p>
+            A scripted driver calls the <em>same</em> tools in a fixed order.
+            “Does an agentic orchestrator beat a fixed protocol?” becomes a
+            controlled experiment (RQ4) instead of a belief.
+          </p>
+        </div>
+      </div>
+
+      <h3>
+        The five invariants (enforced in <code>session.py</code>, unit-tested)
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Invariant</th>
+            <th>Mechanism</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>I1</td>
+            <td>Sole writer</td>
+            <td>
+              A fingerprint of the component in the worktree is checked before
+              every measurement and every commit. Any foreign change stops the
+              session.
+            </td>
+            <td>
+              Measurements are only meaningful if nobody else touches the code.
+            </td>
+          </tr>
+          <tr>
+            <td>I2</td>
+            <td>Two-key commit</td>
+            <td>
+              <code>aqua commit</code> requires F1–F5 to have passed on
+              <em>exactly this content</em> and an <code>approve</code> review
+              for <em>exactly this candidate</em>. If the reviewer is
+              unavailable, the commit is refused.
+            </td>
+            <td>
+              Assured LLM-based SE<a class="cit" href="#r6">[6]</a>:
+              measurements and review are both necessary, neither alone is
+              sufficient.
+            </td>
+          </tr>
+          <tr>
+            <td>I3</td>
+            <td>Independent review</td>
+            <td>
+              The reviewer is a separate agent with a fresh context; the
+              controller picks a model that differs from the implementer’s
+              whenever one is configured, and can be told to require it.
+            </td>
+            <td>
+              LLM judges favour their own generations<a class="cit" href="#r24"
+                >[24]</a
+              >; diverse judges are more reliable.<a class="cit" href="#r25"
+                >[25]</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>I4</td>
+            <td>Budgets</td>
+            <td>
+              Rounds, implementer calls per round, total agent calls, and
+              reviewer escalations per session (3 by default).
+            </td>
+            <td>Bounded cost and bounded “ask until approved”.</td>
+          </tr>
+          <tr>
+            <td>I5</td>
+            <td>Grounded report</td>
+            <td>
+              The reporter writes prose. The controller appends its own evidence
+              tables and flags any committed patch the prose omits.
+            </td>
+            <td>A human must never act on a number a model invented.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="say">
+        <b>Say it like this:</b> “The orchestrator is the tech lead: it decides
+        what to work on and who works on it. But it has no keyboard. It can't
+        write code, can't run commands, and can't press merge. It can only ask
+        the control plane, and the control plane says yes only when the
+        measurements and an independent reviewer both say yes.”
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 5. ONE ROUND                                                  -->
+      <!-- ============================================================ -->
+      <h2>5. One round: localize → implement → measure → review → commit</h2>
+      <p>
+        A round is one finding. The orchestrator opens it, and the controller
+        re-runs the finding’s probe to confirm it still reproduces. Then the
+        orchestrator walks a fixed protocol with agentic steps. This follows
+        Agentless’s lesson that a well-defined localize–repair–validate pipeline
+        beats a free-roaming agent at a fraction of the cost.<a
+          class="cit"
+          href="#r9"
+          >[9]</a
+        >
+        The new step is <b>review after implementation</b>: only candidates that
+        already passed every measurement reach the reviewer, so the reviewer
+        spends its attention on what measurements cannot see.
+      </p>
+
+      <figure>
+        <svg
+          viewBox="0 0 900 345"
+          role="img"
+          aria-label="One round: target finding, localize, implement N, validate F1-F5, review, commit, with reflection feedback from validation and review"
+        >
+          <defs>
+            <marker
+              id="a2"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--inner)" />
+            </marker>
+            <marker
+              id="a2b"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--bad)" />
+            </marker>
+            <marker
+              id="a2g"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--good)" />
+            </marker>
+          </defs>
+          <rect
+            x="8"
+            y="10"
+            width="884"
+            height="325"
+            rx="14"
+            fill="none"
+            stroke="var(--inner)"
+            stroke-dasharray="6 5"
+            opacity=".6"
+          />
+          <text
+            x="26"
+            y="34"
+            font-size="14"
+            font-weight="700"
+            style="fill: var(--inner)"
+          >
+            ONE ROUND — one finding, at most k implementer calls (revisions
+            included)
+          </text>
+
+          <rect
+            x="22"
+            y="72"
+            width="115"
+            height="96"
+            rx="10"
+            fill="none"
+            stroke="var(--outer)"
+            stroke-width="2"
+          />
+          <text
+            x="79"
+            y="108"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            Finding
+          </text>
+          <text
+            x="79"
+            y="127"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            chosen by the
+          </text>
+          <text
+            x="79"
+            y="142"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            orchestrator;
+          </text>
+          <text
+            x="79"
+            y="157"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            probe re-run
+          </text>
+
+          <rect
+            x="160"
+            y="72"
+            width="128"
+            height="96"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--inner)"
+            stroke-width="2"
+          />
+          <text
+            x="224"
+            y="100"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            LOCALIZE
+          </text>
+          <text
+            x="224"
+            y="120"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            subagent, ReAct
+          </text>
+          <text
+            x="224"
+            y="135"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            + probe tools
+          </text>
+          <text
+            x="224"
+            y="150"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            → region, risks
+          </text>
+
+          <rect
+            x="320"
+            y="64"
+            width="128"
+            height="96"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--inner)"
+            stroke-width="1.4"
+            opacity=".55"
+          />
+          <rect
+            x="312"
+            y="72"
+            width="128"
+            height="96"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--inner)"
+            stroke-width="2"
+          />
+          <text
+            x="376"
+            y="100"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            IMPLEMENT ×N
+          </text>
+          <text
+            x="376"
+            y="120"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            model ensemble,
+          </text>
+          <text
+            x="376"
+            y="135"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            parallel; brief from
+          </text>
+          <text
+            x="376"
+            y="150"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            the orchestrator
+          </text>
+
+          <rect
+            x="470"
+            y="72"
+            width="128"
+            height="96"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--gate)"
+            stroke-width="2.6"
+          />
+          <text
+            x="534"
+            y="100"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            MEASURE
+          </text>
+          <text
+            x="534"
+            y="120"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            cascade F1–F5
+          </text>
+          <text
+            x="534"
+            y="135"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            ranked by Δq,
+          </text>
+          <text
+            x="534"
+            y="150"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            then diff size
+          </text>
+
+          <rect
+            x="622"
+            y="72"
+            width="128"
+            height="96"
+            rx="10"
+            fill="var(--surface)"
+            stroke="var(--inner)"
+            stroke-width="2"
+          />
+          <text
+            x="686"
+            y="100"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            REVIEW
+          </text>
+          <text
+            x="686"
+            y="120"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            different model;
+          </text>
+          <text
+            x="686"
+            y="135"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            line comments;
+          </text>
+          <text
+            x="686"
+            y="150"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            2nd opinion if escalated
+          </text>
+
+          <rect
+            x="774"
+            y="72"
+            width="104"
+            height="96"
+            rx="10"
+            fill="none"
+            stroke="var(--good)"
+            stroke-width="2.4"
+          />
+          <text
+            x="826"
+            y="104"
+            text-anchor="middle"
+            font-size="14"
+            font-weight="700"
+          >
+            COMMIT
+          </text>
+          <text
+            x="826"
+            y="124"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            two keys:
+          </text>
+          <text
+            x="826"
+            y="139"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            F1–F5 ∧ approve
+          </text>
+          <text
+            x="826"
+            y="154"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            → series/*.diff
+          </text>
+
+          <line
+            x1="137"
+            y1="120"
+            x2="156"
+            y2="120"
+            stroke="var(--inner)"
+            stroke-width="2.4"
+            marker-end="url(#a2)"
+          />
+          <line
+            x1="288"
+            y1="120"
+            x2="308"
+            y2="120"
+            stroke="var(--inner)"
+            stroke-width="2.4"
+            marker-end="url(#a2)"
+          />
+          <line
+            x1="440"
+            y1="120"
+            x2="466"
+            y2="120"
+            stroke="var(--inner)"
+            stroke-width="2.4"
+            marker-end="url(#a2)"
+          />
+          <line
+            x1="598"
+            y1="120"
+            x2="618"
+            y2="120"
+            stroke="var(--good)"
+            stroke-width="2.4"
+            marker-end="url(#a2g)"
+          />
+          <text
+            x="608"
+            y="110"
+            text-anchor="middle"
+            font-size="10"
+            style="fill: var(--good)"
+          >
+            pass
+          </text>
+          <line
+            x1="750"
+            y1="120"
+            x2="770"
+            y2="120"
+            stroke="var(--good)"
+            stroke-width="2.4"
+            marker-end="url(#a2g)"
+          />
+          <text
+            x="760"
+            y="110"
+            text-anchor="middle"
+            font-size="10"
+            style="fill: var(--good)"
+          >
+            ok
+          </text>
+
+          <!-- reflect loops -->
+          <path
+            d="M534,168 L534,222 L390,222 L390,172"
+            fill="none"
+            stroke="var(--bad)"
+            stroke-width="2.4"
+            marker-end="url(#a2b)"
+          />
+          <text x="542" y="196" font-size="11" style="fill: var(--bad)">
+            fail at Fx
+          </text>
+          <path
+            d="M686,168 L686,262 L360,262 L360,172"
+            fill="none"
+            stroke="var(--bad)"
+            stroke-width="2.4"
+            marker-end="url(#a2b)"
+          />
+          <text x="694" y="215" font-size="11" style="fill: var(--bad)">
+            request changes
+          </text>
+          <rect
+            x="402"
+            y="236"
+            width="122"
+            height="44"
+            rx="8"
+            fill="var(--surface)"
+            stroke="var(--bad)"
+            stroke-width="1.5"
+          />
+          <text
+            x="463"
+            y="255"
+            text-anchor="middle"
+            font-size="12"
+            font-weight="700"
+            style="fill: var(--bad)"
+          >
+            REFLECT
+          </text>
+          <text
+            x="463"
+            y="271"
+            text-anchor="middle"
+            font-size="10"
+            class="muted"
+          >
+            notes → next brief
+          </text>
+
+          <path
+            d="M686,262 L826,262 L826,290"
+            fill="none"
+            stroke="var(--muted-fg)"
+            stroke-width="1.6"
+            stroke-dasharray="4 4"
+          />
+          <text
+            x="826"
+            y="306"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            budget spent or
+          </text>
+          <text
+            x="826"
+            y="320"
+            text-anchor="middle"
+            font-size="11"
+            class="muted"
+          >
+            false positive: give up
+          </text>
+        </svg>
+        <figcaption>
+          Figure 3. Fixed protocol, agentic steps. Localization is tool-bounded
+          ReAct<a class="cit" href="#r18">[18]</a>. Implementation samples N
+          candidates in the spirit of Agentless<a class="cit" href="#r9">[9]</a>
+          and CORE’s proposer–ranker pair.<a class="cit" href="#r13">[13]</a>
+          Failed measurements <em>and</em> review comments come back as
+          structured reflections instead of bare retries<a
+            class="cit"
+            href="#r16"
+            >[16]</a
+          ><a class="cit" href="#r14">[14]</a>: an evaluator–optimizer loop<a
+            class="cit"
+            href="#r12"
+            >[12]</a
+          >, and a counterexample-guided loop in the tradition of CEGIS.<a
+            class="cit"
+            href="#r29"
+            >[29]</a
+          >
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>Who</th>
+            <th>What it returns</th>
+            <th>Bound</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Choose</td>
+            <td>Orchestrator, advised by the bandit</td>
+            <td>
+              One finding and a rationale (logged; overrides are reported)
+            </td>
+            <td>Round budget; parked findings excluded</td>
+          </tr>
+          <tr>
+            <td>Localize</td>
+            <td>
+              Subagent with MCP probe tools<a class="cit" href="#r36">[36]</a>
+            </td>
+            <td>
+              Region, summary, risks to preserve, strategy, false-positive flag
+            </td>
+            <td>Read-only; about 10 tool calls</td>
+          </tr>
+          <tr>
+            <td>Implement ×N</td>
+            <td>Heterogeneous model ensemble, in parallel</td>
+            <td>Search/replace edits and a causal hypothesis</td>
+            <td>Typed output; ≤ 80 changed lines; k calls per round</td>
+          </tr>
+          <tr>
+            <td>Measure</td>
+            <td>Controller: cascade F1–F5 (section 6)</td>
+            <td>Per-candidate verdict, Δq, rejection reason</td>
+            <td>Each filter is a hard stop</td>
+          </tr>
+          <tr>
+            <td>Review</td>
+            <td>
+              Subagent, fresh context (a different model when configured);
+              escalation for a second opinion
+            </td>
+            <td>approve / request_changes / reject, with line comments</td>
+            <td>Only F1–F5 survivors; fails closed</td>
+          </tr>
+          <tr>
+            <td>Commit</td>
+            <td>Controller</td>
+            <td>Patch in <code>series/</code>, q re-measured incrementally</td>
+            <td>Two keys (I2); never touches the user’s checkout</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <!-- 6. ASSURANCE CASCADE                                          -->
+      <!-- ============================================================ -->
+      <h2>6. Measure, then review: the assurance cascade</h2>
+      <p>
+        This is Meta’s
+        <em>Assured LLM-based Software Engineering</em> principle. An LLM output
+        is accepted only if a series of semantic filters shows that it does not
+        regress existing properties and does improve something measurable, with
+        the human as final reviewer, exactly as for human-authored code.<a
+          class="cit"
+          href="#r6"
+          >[6]</a
+        >
+        The filters run cheapest first. The reviewer agent comes last, so it
+        only sees candidates the measurements could not fault.
+      </p>
+
+      <figure>
+        <svg
+          viewBox="0 0 900 430"
+          role="img"
+          aria-label="Funnel of five measurement filters and a review gate"
+        >
+          <defs>
+            <marker
+              id="a3"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto"
+            >
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--bad)" />
+            </marker>
+          </defs>
+          <text x="20" y="22" font-size="13" font-weight="700" class="muted">
+            N candidate patches in
+          </text>
+          <text x="560" y="22" font-size="13" font-weight="700" class="muted">
+            rejects (each yields a reflection note)
+          </text>
+          <g font-size="13">
+            <rect
+              x="20"
+              y="35"
+              width="520"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--gate)"
+              stroke-width="2"
+            />
+            <text x="36" y="57" font-weight="700">
+              F1 · Applies, parses, stays small
+            </text>
+            <text x="36" y="75" class="muted">
+              each edit matches exactly once; ≤ 80 changed lines; node --check +
+              ESLint parse
+            </text>
+            <rect
+              x="45"
+              y="95"
+              width="470"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--gate)"
+              stroke-width="2"
+            />
+            <text x="61" y="117" font-weight="700">
+              F2 · Target finding is gone
+            </text>
+            <text x="61" y="135" class="muted">
+              the same probe, re-run: rule no longer reported / CCN ≤ limit,
+              same function
+            </text>
+            <rect
+              x="70"
+              y="155"
+              width="420"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--gate)"
+              stroke-width="3"
+            />
+            <text x="86" y="177" font-weight="700">
+              F3 · Pareto non-regression on q
+            </text>
+            <text x="86" y="195" class="muted">
+              no measure worsens past ε; the target characteristic improves
+            </text>
+            <rect
+              x="95"
+              y="215"
+              width="370"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--gate)"
+              stroke-width="2"
+            />
+            <text x="111" y="237" font-weight="700">
+              F4 · Tests pass (flaky-aware)
+            </text>
+            <text x="111" y="255" class="muted">
+              newtab Jest, re-run once; “not_run” when disabled
+            </text>
+            <rect
+              x="120"
+              y="275"
+              width="320"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--gate)"
+              stroke-width="2"
+            />
+            <text x="136" y="297" font-weight="700">
+              F5 · Anti-gaming guards
+            </text>
+            <text x="136" y="315" class="muted">
+              no suppressions, no removed exports, no gutting
+            </text>
+            <rect
+              x="145"
+              y="335"
+              width="270"
+              height="50"
+              rx="8"
+              fill="var(--surface)"
+              stroke="var(--inner)"
+              stroke-width="2.4"
+            />
+            <text x="161" y="357" font-weight="700">
+              Review · reviewer agent
+            </text>
+            <text x="161" y="375" class="muted">
+              different model; can approve only survivors
+            </text>
+          </g>
+          <text
+            x="280"
+            y="414"
+            text-anchor="middle"
+            font-size="13"
+            font-weight="700"
+            style="fill: var(--good)"
+          >
+            ▼ two keys → commit → report → human
+          </text>
+          <line
+            x1="880"
+            y1="40"
+            x2="880"
+            y2="380"
+            stroke="var(--muted-fg)"
+            stroke-width="1.5"
+            marker-end="url(#a3)"
+            style="stroke: var(--muted-fg)"
+          />
+          <text
+            x="870"
+            y="215"
+            font-size="12"
+            class="muted"
+            text-anchor="middle"
+            transform="rotate(90 870 215)"
+          >
+            cost per check: seconds → minutes
+          </text>
+          <g stroke="var(--bad)" stroke-width="1.6">
+            <line x1="540" y1="60" x2="600" y2="60" marker-end="url(#a3)" />
+            <line x1="515" y1="120" x2="600" y2="120" marker-end="url(#a3)" />
+            <line x1="490" y1="180" x2="600" y2="180" marker-end="url(#a3)" />
+            <line x1="465" y1="240" x2="600" y2="240" marker-end="url(#a3)" />
+            <line x1="440" y1="300" x2="600" y2="300" marker-end="url(#a3)" />
+            <line x1="415" y1="360" x2="600" y2="360" marker-end="url(#a3)" />
+          </g>
+          <g font-size="12">
+            <text x="610" y="64" class="muted">broken or oversized diff</text>
+            <text x="610" y="124" class="muted">did not actually fix it</text>
+            <text x="610" y="184" class="muted">fixed X, broke Y</text>
+            <text x="610" y="244" class="muted">functional regression</text>
+            <text x="610" y="304" class="muted">“cheated” the metric</text>
+            <text x="610" y="364" class="muted">
+              behaviour / convention doubt → comments
+            </text>
+          </g>
+        </svg>
+        <figcaption>
+          Figure 4. The cascade narrows like a funnel; the widths are
+          illustrative, not measured. F5 exists because agents are known to game
+          checks: overfitting in program repair<a class="cit" href="#r19"
+            >[19]</a
+          ><a class="cit" href="#r20">[20]</a> and measured cheating on
+          impossible tasks.<a class="cit" href="#r21">[21]</a> The reviewer is
+          never the author’s model, because self-review without external
+          feedback is unreliable<a class="cit" href="#r17">[17]</a> and judges
+          favour their own generations.<a class="cit" href="#r24">[24]</a>
+        </figcaption>
+      </figure>
+
+      <ul>
+        <li>
+          <b>F1–F2 turn a patch into a claim:</b> a specific probe, a pinned
+          revision, and a before/after output pair.
+        </li>
+        <li>
+          <b>F3 is the non-compensatory core (R2).</b> An “improve
+          maintainability, degrade accessibility” patch dies here.
+        </li>
+        <li>
+          <b>F5 targets known gaming strategies:</b> suppression comments,
+          deleted API, gutted code. It is cheap because it is mostly a
+          diff-grammar check. The planned extension is mutation-guided hardening
+          tests in the style of Meta’s ACH.<a class="cit" href="#r8">[8]</a>
+        </li>
+        <li>
+          <b>The review gate adds judgment with limited authority.</b> The
+          reviewer can block anything and comment on everything. It can approve
+          only what the measurements already accepted. Its
+          <code>request_changes</code> comments become the next implementer’s
+          brief.
+        </li>
+      </ul>
+
+      <h3>Promotion stays human, and follows Mozilla’s own ladder</h3>
+      <p>
+        A committed candidate is not merged. It becomes a reviewable patch that
+        follows the standard Firefox path:
+      </p>
+      <ol>
+        <li>
+          a <code>mach try</code> CI push for the touched suites<a
+            class="cit"
+            href="#r39"
+            >[39]</a
+          >;
+        </li>
+        <li>a Phabricator review;</li>
+        <li>
+          for anything user-visible, a Nightly rollout watched with Perfherder<a
+            class="cit"
+            href="#r40"
+            >[40]</a
+          >, plus a Nimbus experiment if there is a product-level claim.<a
+            class="cit"
+            href="#r41"
+            >[41]</a
+          >
+        </li>
+      </ol>
+
+      <div class="say">
+        <b>Say it like this:</b> “The patch first has to prove it exists (F1),
+        that it did something (F2), that it did nothing bad anywhere else (F3),
+        that nothing broke (F4), and that it didn't cheat (F5). Only then does a
+        reviewer from a different model family read it, and only then does a
+        human see it.”
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 7. PLAN                                                       -->
+      <!-- ============================================================ -->
+      <h2>7. Plan: a bandit that advises the orchestrator</h2>
+      <p>
+        Which ISO characteristic deserves the next round? AQUA treats each
+        characteristic as an arm of a multi-armed bandit. Each arm keeps a
+        Beta(α, β) posterior over “a round on this characteristic ends with a
+        committed, measured improvement”. Thompson sampling draws θ from each
+        posterior and divides by the arm’s relative cost (mean seconds per
+        round). The highest score wins, and the best finding of that arm is
+        suggested by priority.<a class="cit" href="#r10">[10]</a>
+      </p>
+      <div class="grid">
+        <div class="card">
+          <h4>Exploration for free</h4>
+          <p>
+            Uncertain arms sometimes win the draw, so a characteristic that
+            failed early is retried later instead of being abandoned.
+            Successful, cheap arms win most draws.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Rewards</h4>
+          <p>
+            A committed patch adds α + 1; a failed round adds β + 1. A human
+            <em>reject</em> later adds β + 1 again, so the planner learns what
+            humans adopt, not only what the cascade passes.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Advisory, by design</h4>
+          <p>
+            The orchestrator may override the suggestion (for example a likely
+            false positive in build scripts). It must state a rationale, and the
+            report shows every divergence.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 8. KNOWLEDGE                                                  -->
+      <!-- ============================================================ -->
+      <h2>8. Knowledge: what makes round n+1 better</h2>
+      <div class="grid">
+        <div class="card">
+          <h4><span class="tag t-know">ledger</span></h4>
+          <p>
+            q after every round of every session: the evidence trail behind
+            every quality claim.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-know">bandit</span></h4>
+          <p>
+            The posteriors and cost per characteristic, persisted across
+            sessions.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-know">playbook</span></h4>
+          <p>
+            Committed fixes per rule, retrieved as examples for the next
+            implementer on the same rule.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-know">attempts</span></h4>
+          <p>
+            The failure history per finding. After 2 failed rounds a finding is
+            parked as unresolved.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-know">false positives</span></h4>
+          <p>
+            Claims by the localizer or reviewer go to a suggestion queue. Only a
+            human moves them into the confirmed list.
+          </p>
+        </div>
+        <div class="card">
+          <h4><span class="tag t-know">candidates</span></h4>
+          <p>
+            Committed patches awaiting the human verdict. The verdict feeds the
+            bandit.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 9. REPORT                                                     -->
+      <!-- ============================================================ -->
+      <h2>9. The report agent and the human decision</h2>
+      <p>
+        When the orchestrator ends the session, the controller freezes the
+        evidence: every round, candidate, filter result, review, diff, Δq,
+        budget and model call. The orchestrator then delegates the
+        <b>reporter</b>. Like the cited-sources agent that closes production
+        research systems,<a class="cit" href="#r28">[28]</a> it turns raw
+        evidence into something a busy engineer can act on:
+      </p>
+      <ul>
+        <li>a summary;</li>
+        <li>
+          one section per patch: what changed, why behaviour should be
+          preserved, what the reviewer said, the measured Δq, and what to
+          double-check;
+        </li>
+        <li>what did not work and why;</li>
+        <li>the q table per ISO characteristic;</li>
+        <li>process notes and limitations.</li>
+      </ul>
+      <div class="grid">
+        <div class="card">
+          <h4>Grounded by construction (I5)</h4>
+          <p>
+            After the prose, the controller appends its own tables: q, rounds,
+            candidates, commits, agent usage and posteriors. If the prose skips
+            a committed patch, a controller note says so at the top.
+          </p>
+        </div>
+        <div class="card">
+          <h4>The human closes the loop</h4>
+          <p>
+            <code>aqua_loop.py feedback &lt;id&gt; accept|reject</code> records
+            the verdict. A rejection feeds the bandit, and confirmed false
+            positives feed ANALYZE.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Everything is replayable</h4>
+          <p>
+            <code>events.jsonl</code>, every subagent prompt and reply, the
+            probe logs, and the patch series apply on the recorded baseline
+            revision.<a class="cit" href="#r11">[11]</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 10. AGENTS & MODELS                                           -->
+      <!-- ============================================================ -->
+      <h2>10. Agents, models and cost</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Default</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Orchestrator</td>
+            <td>
+              Whatever agent the human starts in T3 Code, running the
+              <code>aqua</code> skill
+            </td>
+            <td>
+              Chosen per conversation by the human. It makes decisions, not
+              code; the controller enforces the rules whatever the agent is.
+            </td>
+          </tr>
+          <tr>
+            <td>Localizer</td>
+            <td>OpenCode + the <code>aqua-probes</code> MCP server</td>
+            <td>Needs tools, not a big model</td>
+          </tr>
+          <tr>
+            <td>Implementers</td>
+            <td>
+              OpenCode; DeepSeek by default, more models rotate when configured
+            </td>
+            <td>
+              Diversity raises the chance that one candidate survives; with one
+              model it comes from sampling only
+            </td>
+          </tr>
+          <tr>
+            <td>Reviewer</td>
+            <td>
+              OpenCode, a fresh context; the escalation model only when the
+              orchestrator asks
+            </td>
+            <td>
+              Independence (I3); second opinions are reserved for disputed or
+              security-relevant reviews
+            </td>
+          </tr>
+          <tr>
+            <td>Reporter</td>
+            <td>OpenCode</td>
+            <td>Writing from structured evidence</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="cite">
+        Every role defaults to <code>opencode/deepseek-v4.1-flash-free</code>;
+        each can be set to any model from <code>opencode models</code> in
+        <code>aqua.yml</code>. Escalations are rationed by
+        <code>agents.escalation_budget</code> (3 per session by default); the
+        controller counts and refuses beyond it. Every call’s model, duration
+        and outcome appears in the report.
+      </p>
+
+      <!-- ============================================================ -->
+      <!-- 11. EVALUATION                                                -->
+      <!-- ============================================================ -->
+      <h2>11. Evaluation plan</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>RQ</th>
+            <th>Question</th>
+            <th>Measure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RQ1</td>
+            <td>Does AQUA improve measured quality?</td>
+            <td>
+              Δq per characteristic per session; committed patches per round
+            </td>
+          </tr>
+          <tr>
+            <td>RQ2</td>
+            <td>Are committed patches good?</td>
+            <td>
+              Human acceptance rate; reviewer/human agreement; patches rejected
+              after commit
+            </td>
+          </tr>
+          <tr>
+            <td>RQ3</td>
+            <td>Which mechanisms matter?</td>
+            <td>
+              Ablations: planner (Thompson vs random vs round-robin), N = 1 vs
+              3, no reflection, review vs no review
+            </td>
+          </tr>
+          <tr>
+            <td>RQ4</td>
+            <td>Is an agentic orchestrator better than a fixed protocol?</td>
+            <td>
+              Orchestrator vs scripted driver, same tools and budgets: commits,
+              human acceptance, agent calls, time
+            </td>
+          </tr>
+          <tr>
+            <td>RQ5</td>
+            <td>What does it cost?</td>
+            <td>Agent calls, escalations, wall time per committed patch</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Report every rate with a confidence interval over repeated sessions,<a
+          class="cit"
+          href="#r34"
+          >[34]</a
+        >
+        and compare at equal budget. The METR result is the reminder that
+        perceived help and measured help can disagree.<a class="cit" href="#r27"
+          >[27]</a
+        >
+      </p>
+      <h3>Threats to validity</h3>
+      <ul>
+        <li>
+          <b>Construct.</b> q covers lint, Semgrep and Lizard measures.
+          Performance efficiency is not measured in the pilot, and F4 is off
+          until the newtab test dependencies are installed.
+        </li>
+        <li>
+          <b>Internal.</b> Free models change and time out. Logging the model
+          per call and repeating sessions mitigates this.
+        </li>
+        <li>
+          <b>External.</b> One Firefox component. The architecture is
+          component-agnostic, but the evidence is not yet.
+        </li>
+        <li>
+          <b>Reviewer validity.</b> An LLM reviewer can miss behaviour changes.
+          Hence the human gate, and RQ2 measures reviewer/human agreement.
+        </li>
+      </ul>
+
+      <!-- ============================================================ -->
+      <!-- 12. PITCH                                                     -->
+      <!-- ============================================================ -->
+      <h2>12. The architecture in one paragraph</h2>
+      <p class="quote">
+        AQUA is a MAPE-K loop for ISO/IEC 25010 quality in Firefox. An
+        orchestrator agent, chosen by the human and guided by one skill (<code
+          >SKILL.md</code
+        >
+        and its script), plans each round with the help of a Thompson-sampling
+        bandit. It delegates to subagents: a localizer, an ensemble of
+        implementers, a reviewer after implementation, and a reporter at the
+        end. Every action passes through a deterministic control daemon. That
+        plane measures candidates with an assurance cascade (Pareto
+        non-regression on the quality vector), commits only with two keys
+        (measurements <em>and</em> an independent review), rations second
+        opinions, and grounds the final report in its own evidence. Agents
+        propose, measurements decide, humans adopt.
+      </p>
+
+      <!-- ============================================================ -->
+      <!-- REFERENCES                                                    -->
+      <!-- ============================================================ -->
+      <h2>References</h2>
+      <ol class="refs">
+        <li id="r1">
+          ISO/IEC 25010:2023. Systems and software engineering — SQuaRE —
+          Product quality model.
+        </li>
+        <li id="r2">
+          ISO/IEC 25023:2016. Systems and software engineering — SQuaRE —
+          Measurement of system and software product quality.
+        </li>
+        <li id="r3">
+          ISO/IEC 25040:2024. Systems and software engineering — SQuaRE —
+          Quality evaluation framework.
+        </li>
+        <li id="r4">
+          ISO/IEC 25059:2023. Software engineering — SQuaRE — Quality model for
+          AI systems.
+        </li>
+        <li id="r5">
+          J. O. Kephart, D. M. Chess. The Vision of Autonomic Computing.
+          <i>IEEE Computer</i> 36(1), 2003.
+        </li>
+        <li id="r6">
+          N. Alshahwan, M. Harman, I. Harper, A. Marginean, S. Sengupta, E.
+          Wang. Assured LLM-Based Software Engineering. <i>InteNSE @ ICSE</i>,
+          2024.
+        </li>
+        <li id="r7">
+          N. Alshahwan et al. Automated Unit Test Improvement using Large
+          Language Models at Meta. <i>FSE Industry</i>, 2024.
+        </li>
+        <li id="r8">
+          M. Harman et al. Mutation-Guided LLM-based Test Generation at Meta.
+          <i>FSE Industry</i>, 2025.
+        </li>
+        <li id="r9">
+          C. S. Xia, Y. Deng, S. Dunn, L. Zhang. Agentless: Demystifying
+          LLM-based Software Engineering Agents. <i>FSE</i>, 2025 (arXiv
+          2407.01489).
+        </li>
+        <li id="r10">
+          D. Russo, B. Van Roy, A. Kazerouni, I. Osband, Z. Wen. A Tutorial on
+          Thompson Sampling.
+          <i>Foundations and Trends in Machine Learning</i> 11(1), 2018.
+        </li>
+        <li id="r11">M. Fowler. Event Sourcing. martinfowler.com, 2005.</li>
+        <li id="r12">
+          E. Schluntz, B. Zhang. Building Effective Agents. Anthropic
+          Engineering, December 2024 (orchestrator–workers;
+          evaluator–optimizer).
+        </li>
+        <li id="r13">
+          N. Wadhwa et al. CORE: Resolving Code Quality Issues using LLMs.
+          <i>FSE</i>, 2024.
+        </li>
+        <li id="r14">
+          A. Madaan et al. Self-Refine: Iterative Refinement with Self-Feedback.
+          <i>NeurIPS</i>, 2023.
+        </li>
+        <li id="r15">
+          P. Rondon et al. Evaluating Agent-based Program Repair at Google.
+          <i>ICSE SEIP</i>, 2025.
+        </li>
+        <li id="r16">
+          N. Shinn et al. Reflexion: Language Agents with Verbal Reinforcement
+          Learning. <i>NeurIPS</i>, 2023.
+        </li>
+        <li id="r17">
+          J. Huang et al. Large Language Models Cannot Self-Correct Reasoning
+          Yet. <i>ICLR</i>, 2024.
+        </li>
+        <li id="r18">
+          S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language
+          Models. <i>ICLR</i>, 2023.
+        </li>
+        <li id="r19">
+          E. K. Smith, E. T. Barr, C. Le Goues, Y. Brun. Is the Cure Worse than
+          the Disease? Overfitting in Automated Program Repair. <i>FSE</i>,
+          2015.
+        </li>
+        <li id="r20">
+          Y. Wang, M. Pradel, Z. Liu. Are “Solved Issues” in SWE-bench Really
+          Solved Correctly? An Empirical Study. arXiv 2503.15223, 2025.
+        </li>
+        <li id="r21">
+          Z. Zhong, A. Raghunathan, N. Carlini. ImpossibleBench: Measuring LLMs’
+          Propensity of Exploiting Test Cases. arXiv 2510.20270, 2025.
+        </li>
+        <li id="r22">
+          M. MacDiarmid et al. Natural Emergent Misalignment from Reward Hacking
+          in Production RL. Anthropic, 2025.
+        </li>
+        <li id="r23">
+          M. Taylor et al. School of Reward Hacks: Hacking Harmless Tasks
+          Generalizes to Misaligned Behavior in LLMs. arXiv 2508.17511, 2025.
+        </li>
+        <li id="r24">
+          A. Panickssery, S. R. Bowman, S. Feng. LLM Evaluators Recognize and
+          Favor Their Own Generations. <i>NeurIPS</i>, 2024.
+        </li>
+        <li id="r25">
+          P. Verga et al. Replacing Judges with Juries: Evaluating LLM
+          Generations with a Panel of Diverse Models. arXiv 2404.18796, 2024.
+        </li>
+        <li id="r26">
+          M. Cemri et al. Why Do Multi-Agent LLM Systems Fail? arXiv 2503.13657,
+          2025.
+        </li>
+        <li id="r27">
+          J. Becker, N. Rush, E. Barnes, D. Rein. Measuring the Impact of
+          Early-2025 AI on Experienced Open-Source Developer Productivity. METR,
+          arXiv 2507.09089, 2025.
+        </li>
+        <li id="r28">
+          Anthropic. How We Built Our Multi-Agent Research System. Anthropic
+          Engineering, June 2025 (lead agent, subagents, citation agent).
+        </li>
+        <li id="r29">
+          A. Solar-Lezama, L. Tancau, R. Bodik, S. Seshia, V. Saraswat.
+          Combinatorial Sketching for Finite Programs. <i>ASPLOS</i>, 2006.
+        </li>
+        <li id="r30">
+          S. Kambhampati et al. LLMs Can’t Plan, But Can Help Planning in
+          LLM-Modulo Frameworks. <i>ICML</i>, 2024.
+        </li>
+        <li id="r31">
+          A. Fourney et al. Magentic-One: A Generalist Multi-Agent System for
+          Solving Complex Tasks. Microsoft Research, arXiv 2411.04468, 2024.
+        </li>
+        <li id="r32">
+          H. Wang, C. M. Poskitt, J. Sun. AgentSpec: Customizable Runtime
+          Enforcement for Safe and Reliable LLM Agents. <i>ICSE</i>, 2026 (arXiv
+          2503.18666).
+        </li>
+        <li id="r33">
+          E. Debenedetti et al. Defeating Prompt Injections by Design (CaMeL).
+          arXiv 2503.18813, 2025.
+        </li>
+        <li id="r34">
+          E. Miller. Adding Error Bars to Evals: A Statistical Approach to
+          Language Model Evaluations. arXiv 2411.00640, 2024.
+        </li>
+        <li id="r35">
+          S. Hong et al. MetaGPT: Meta Programming for a Multi-Agent
+          Collaborative Framework. <i>ICLR</i>, 2024.
+        </li>
+        <li id="r36">
+          Model Context Protocol Specification, revision 2025-06-18.
+          modelcontextprotocol.io.
+        </li>
+        <li id="r37">
+          OASIS. Static Analysis Results Interchange Format (SARIF) Version
+          2.1.0, 2020.
+        </li>
+        <li id="r38">
+          OpenTelemetry. Semantic Conventions for Generative AI Systems.
+        </li>
+        <li id="r39">
+          Mozilla. Firefox Source Docs: Try (<code>mach try</code>).
+        </li>
+        <li id="r40">Mozilla. Firefox Source Docs: Perfherder.</li>
+        <li id="r41">
+          Mozilla. Nimbus experimentation platform documentation
+          (experimenter.info).
+        </li>
+        <li id="r42">
+          Mozilla. Firefox Source Docs: Accessibility Checks in mochitests
+          (<code>a11y_checks</code>).
+        </li>
+        <li id="r43">
+          Mozilla. eslint-plugin-no-unsanitized.
+          github.com/mozilla/eslint-plugin-no-unsanitized.
+        </li>
+        <li id="r44">
+          X. Wang et al. OpenHands: An Open Platform for AI Software Developers
+          as Generalist Agents. <i>ICLR</i>, 2025.
+        </li>
+        <li id="r45">
+          C. Qian et al. ChatDev: Communicative Agents for Software Development.
+          <i>ACL</i>, 2024.
+        </li>
+      </ol>
+    </main>
+  </body>
+</html>

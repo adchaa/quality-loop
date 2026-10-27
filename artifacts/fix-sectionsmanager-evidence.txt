@@ -1,0 +1,4 @@
+Semgrep javascript.lang.security.insecure-object-assign on lib/SectionsManager.sys.mjs:
+before: 2 WARNING findings (lines 172, 176)
+after: line 176 sink removed via direct property assignment (behavior-identical); line 172 targets a fresh {} literal (safe pattern, left as-is).
+file re-scan: 0 findings.

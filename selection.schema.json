@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FindingSelection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision", "issue_id", "rationale"],
+  "properties": {
+    "decision": {"type": "string", "enum": ["select", "stop"]},
+    "issue_id": {"type": ["string", "null"]},
+    "rationale": {"type": "string", "maxLength": 500}
+  }
+}

@@ -1,0 +1,41 @@
+hard_veto: true
+
+rings:
+  ring0_always:
+    - mirrored_jest_file
+    - mach_lint_touched_files
+  ring1_on_ring0_green:
+    - full_jest_suite
+    - xpcshell_newtab
+  ring2_before_l2_promotion:
+    - browser_tests_headless
+    - build_faster
+    - bundle_prerender_diff
+
+commands:
+  mirrored_jest: "./mach npm test --prefix=browser/extensions/newtab -- {test_file}"
+  full_jest: "./mach npm test --prefix=browser/extensions/newtab"
+  xpcshell: "./mach test browser/components/newtab/test/xpcshell"
+  browser_headless: "./mach test browser/components/newtab/test/browser --headless"
+  build_faster: "./mach build faster"
+  lint: "./mach lint {files}"
+  format_check: "./mach format {files}"
+  glean_diff_beta: "./mach newtab channel-metrics-diff --channel beta"
+  glean_diff_release: "./mach newtab channel-metrics-diff --channel release"
+
+fail_on:
+  new_jest_failure: true
+  new_xpcshell_failure: true
+  bundle_growth_pct_gt: 3
+  prerender_unexpected_diff: true
+  glean_schema_break: true
+  trainhop_violation: true
+  nova_scope_violation: true
+  redux_mutation_violation: true
+
+flaky:
+  retries: 2
+  quarantine_list: loop/known-flaky.yml
+
+artifacts_dir: loop/artifacts
+baseline_file: loop/artifacts/regression-baseline.json

@@ -1,0 +1,21 @@
+{
+  "rev": "64cfaf34e56f4c82eea77d032ec592c083b5b161 2026-10-13",
+  "files": {
+    "browser/extensions/newtab/manifest.json": {
+      "sha16": "5ab389b2856a3771",
+      "bytes": 314
+    },
+    "browser/components/newtab/metrics.yaml": {
+      "sha16": "fea84f8b29baf1a4",
+      "bytes": 110838
+    },
+    "browser/components/newtab/pings.yaml": {
+      "sha16": "600ce76f086ac336",
+      "bytes": 1918
+    },
+    "browser/extensions/newtab/prerendered/activity-stream.html": {
+      "sha16": "92538846caae35eb",
+      "bytes": 3734
+    }
+  }
+}

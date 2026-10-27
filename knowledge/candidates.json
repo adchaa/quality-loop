@@ -1,0 +1,525 @@
+{
+  "20261015T175711Z-0031a8-r01": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -12,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 70,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 2,
+        "before": 27,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -12,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 12,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      },
+      {
+        "category": "none",
+        "id": "F6",
+        "model": "opencode/nemotron-3-ultra-free",
+        "reason": "The patch correctly refactors the TopSites reducer by extracting three focused helper functions (updateTopSitesSettings, updateTopSitesPreview, updateTopSitesRows) and a dispatch Map. All 15 original action cases are preserved with identical logic and return values. The new TopSites function performs a simple Map lookup (2-branch) and delegates, reducing CCN from 27 to <=12 per helper. No behavior change: same prevState default, same object identity semantics, same action routing. Measured ccn_excess improves by -12. No convention violations detected.",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 27,
+      "function": "TopSites",
+      "id": "c6e6d6ce356d",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 364,
+      "message": "cyclomatic complexity 27 > 15 in TopSites",
+      "path": "browser/extensions/newtab/common/Reducers.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 12
+    },
+    "hypothesis": "TopSites is a 15-case switch; lizard counts each case label plus the in-case guards, giving ccn 27. Extracting the cases into three small switch-based helpers (settings, preview, row updates), each with ccn <= 12, and dispatching through a module-level Map keyed by action.type, leaves TopSites as a 2-branch lookup. Every helper reproduces its original branches, returns the identical new object (or the same prevState for no-ops/missing data), and the Map preserves per-type routing, so behaviour and identity semantics are unchanged and no other function exceeds the limit.",
+    "model": "opencode:opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261015T175711Z-0031a8/series/01-c6e6d6ce356d.diff",
+    "run": "20261015T175711Z-0031a8"
+  },
+  "20261021T074108Z-634c75-r01": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -12,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 67,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 3,
+        "before": 27,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -12,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 12,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 27,
+      "function": "TopSites",
+      "id": "c6e6d6ce356d",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 364,
+      "message": "cyclomatic complexity 27 > 15 in TopSites",
+      "path": "browser/extensions/newtab/common/Reducers.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 12
+    },
+    "human": "reject",
+    "human_time": "2026-10-22T08:14:15+00:00",
+    "hypothesis": "TopSites is one switch over 15 action types plus guards, so lizard charges ~27 branches. Extracting the settings, preview and row-update cases into three module-level pure switch helpers (ccn ~13, ~9 and ~9), and routing via two module-level Sets, leaves TopSites with two membership checks. Each helper reproduces its original branch bodies exactly, so return values and referential identity (prevState for no-ops/missing data, new objects for updates) are unchanged, and no helper exceeds the limit.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261021T074108Z-634c75/series/01-c6e6d6ce356d.diff",
+    "review": {
+      "candidate_id": "r01-a1-c0",
+      "category": "none",
+      "comments": [],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 114.9,
+      "summary": "The extraction preserves TopSites semantics: all 15 action types route to the same original branch bodies, including prevState identity for no-ops, row cloning, bookmark deletion, and preview editForm handling. The three helpers are measured at ccn 12/8/9, so this is a genuine split rather than complexity hidden from the probe. No Firefox convention or readability blockers found.",
+      "verdict": "approve"
+    },
+    "run": "20261021T074108Z-634c75"
+  },
+  "20261021T074108Z-634c75-r02": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -10,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 69,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 9,
+        "before": 25,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -10,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 10,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 25,
+      "function": "handlePlacesEvent",
+      "id": "81c33e60f2bd",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 45,
+      "message": "cyclomatic complexity 25 > 15 in handlePlacesEvent",
+      "path": "browser/extensions/newtab/lib/PlacesFeed.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 10
+    },
+    "human": "reject",
+    "human_time": "2026-10-22T08:14:15+00:00",
+    "hypothesis": "handlePlacesEvent keeps its name, switch order, destructuring and dispatch ordering, but its inlined eligibility predicates and post-loop batching move to file-local helpers. isIgnorableBookmarkAdded and isRemovableBookmark reproduce the original conditions in the same evaluation order, so tagging, item-type, source-exclusion and http(s) filtering are unchanged. flushRemovals preserves the exact three guarded dispatches and their order. Branching in the method drops to about 9 and every helper stays well under 15, with identical action payloads and no new exports.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261021T074108Z-634c75/series/02-81c33e60f2bd.diff",
+    "review": {
+      "candidate_id": "r02-a1-c1",
+      "category": "none",
+      "comments": [],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 60.3,
+      "summary": "The refactor is behaviour-preserving. Both extracted predicates reproduce the original guards in the same short-circuit order (tagging, item type, excluded sources, then http(s) for bookmark-added), so skip/collect decisions are unchanged. flushRemovals retains the single PLACES_LINKS_CHANGED followed by LINKS_DELETED and BOOKMARKS_REMOVED, and history-cleared and bookmark-added dispatches stay inline at their original positions. Passing this.dispatch is safe because it is bound to the observer in the constructor, and tests pass plain spies, so no `this` change. Helpers are file-local, no new exports, existing comments kept. Complexity is genuinely redistributed, not hidden from the probe.",
+      "verdict": "approve"
+    },
+    "run": "20261021T074108Z-634c75"
+  },
+  "20261022T082029Z-608bbf-r03": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -9,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 34,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 2,
+        "before": 24,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -9,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 9,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 24,
+      "function": "PictureOfTheDay",
+      "id": "2b3e508f485d",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 1242,
+      "message": "cyclomatic complexity 24 > 15 in PictureOfTheDay",
+      "path": "browser/extensions/newtab/common/Reducers.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 9
+    },
+    "hypothesis": "Lizard double-counts each of the 11 `??` operators in PictureOfTheDay, inflating CCN to 24 even though the function is a flat one-case switch. Moving the per-field defaulting into a module-level helper that iterates a field/fallback map leaves exactly one `??` there (CCN well under 15) and reduces the reducer to two branches. Spread order (prevState, normalized fields, initialized:true) and `??` semantics with identical fallbacks keep values, key order, null/undefined handling, and prevState identity for other actions unchanged.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261022T082029Z-608bbf/series/03-2b3e508f485d.diff",
+    "review": {
+      "candidate_id": "r03-a1-c1",
+      "category": "none",
+      "comments": [],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 101.2,
+      "summary": "The patch is behaviour-preserving: per-field `??` fallbacks are moved into a single module-level helper while keeping the same fallback values, field/key order, spread order (`...prevState`, normalized fields, `initialized: true`), and prevState identity for other actions. Null/undefined still default correctly, `\"\"`, 0 and false are preserved, and `lastUpdated`/`error` still default to null. The `PictureOfTheDay` reducer now has one branch, and the new helper's loop is low-complexity and visible to the same probe, so this is a genuine deduplication rather than a hidden finding. No Firefox convention or readability problems found.",
+      "verdict": "approve"
+    },
+    "run": "20261022T082029Z-608bbf"
+  },
+  "20261025T065330Z-a5dcac-r01": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -10,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 69,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 9,
+        "before": 25,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -10,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 10,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 25,
+      "function": "handlePlacesEvent",
+      "id": "81c33e60f2bd",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 45,
+      "message": "cyclomatic complexity 25 > 15 in handlePlacesEvent",
+      "path": "browser/extensions/newtab/lib/PlacesFeed.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 10
+    },
+    "hypothesis": "handlePlacesEvent's CCN is inflated by two long inlined boolean predicates and three post-loop guards. Moving the bookmark-added skip test and the bookmark-removed test into module-level helpers preserves short-circuit evaluation order and identical truth values, including the `continue` path. Extracting the three ordered, guarded dispatches into flushRemovals keeps payloads and dispatch order identical. The method then has only the switch/loop branches plus helper calls, well under 15, and every helper is far below the limit.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261025T065330Z-a5dcac/series/01-81c33e60f2bd.diff",
+    "review": {
+      "candidate_id": "r01-a1-c0",
+      "category": "none",
+      "comments": [
+        {
+          "comment": "The four excluded SOURCES comparisons are duplicated here and in isIgnorableBookmarkAdded, so a future source addition must be made in both. Consider a shared isExcludedSource(source) predicate (or Set) used by both helpers to prevent drift. Not blocking.",
+          "line": 44
+        }
+      ],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 68.2,
+      "summary": "Behaviour-preserving extraction: isIgnorableBookmarkAdded and isRemovableBookmark keep the original short-circuit order and truth values, so the skip/continue and collect decisions are unchanged. flushRemovals retains the single PLACES_LINKS_CHANGED followed by LINKS_DELETED and BOOKMARKS_REMOVED, and the inline history-cleared/bookmark-added dispatches stay in place. Passing this.dispatch is safe because it is already the bound customDispatch in production (and a plain spy in tests). Complexity is genuinely redistributed to functions lizard still measures, not hidden, and no exports changed.",
+      "verdict": "approve"
+    },
+    "run": "20261025T065330Z-a5dcac"
+  },
+  "20261025T065330Z-a5dcac-r02": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -12,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 78,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 14,
+        "before": 27,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -12,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 12,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 27,
+      "function": "onAction",
+      "id": "1c2820074c5c",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 638,
+      "message": "cyclomatic complexity 27 > 15 in onAction",
+      "path": "browser/extensions/newtab/lib/TopStoriesFeed.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 12
+    },
+    "hypothesis": "onAction's CCN comes from two dense case bodies. Moving the TELEMETRY_IMPRESSION_STATS source guard, viewImpression test, tile/spoc loop and top-rec bookkeeping into handleImpressionStats removes six decision points, and moving the four mutually exclusive PREF_CHANGED pref branches into an async handlePrefChanged helper (same conditions, same await on removeSpocs) removes six more. onAction keeps its name, async signature, early disabled return and case order; both new helpers are far below CCN 15. Comments stay with their logic and the diff stays under 80 lines.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261025T065330Z-a5dcac/series/02-1c2820074c5c.diff",
+    "review": {
+      "candidate_id": "r02-a2-c0",
+      "category": "none",
+      "comments": [],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 99.4,
+      "summary": "Both extractions are behaviour-preserving. handleImpressionStats inverts the source/viewImpression/tiles guards into early returns with identical evaluation order (source first, then the click/block/pocket `in` checks, then tiles), and the spoc-loop/topRec bookkeeping is copied unchanged. handlePrefChanged turns four mutually exclusive name comparisons into an else-if chain; removeSpocs is still awaited and onAction still awaits the helper, so async ordering and the returned promise are unchanged. Naming matches the existing handleDisabled pattern, and no callers or tests depend on onAction internals. The CCN reduction is genuine decomposition, not hidden logic.",
+      "verdict": "approve"
+    },
+    "run": "20261025T065330Z-a5dcac"
+  },
+  "20261025T065330Z-a5dcac-r03": {
+    "characteristic": "maintainability",
+    "delta": {
+      "ccn_excess": -14,
+      "lint_a11y": 0,
+      "lint_maintainability": 0,
+      "lint_security": 0,
+      "parse_errors": 0,
+      "semgrep_findings": 0
+    },
+    "filters": [
+      {
+        "changed_lines": 79,
+        "id": "F1",
+        "status": "pass"
+      },
+      {
+        "after": 14,
+        "before": 29,
+        "id": "F2",
+        "status": "pass"
+      },
+      {
+        "delta": {
+          "ccn_excess": -14,
+          "lint_a11y": 0,
+          "lint_maintainability": 0,
+          "lint_security": 0,
+          "parse_errors": 0,
+          "semgrep_findings": 0
+        },
+        "gain": 14,
+        "id": "F3",
+        "status": "pass"
+      },
+      {
+        "id": "F4",
+        "reason": "tests disabled in aqua.yml",
+        "status": "not_run"
+      },
+      {
+        "id": "F5",
+        "status": "pass"
+      }
+    ],
+    "finding": {
+      "complexity": 29,
+      "function": "attempt",
+      "id": "a910780db304",
+      "iso_characteristic": "maintainability",
+      "iso_subcharacteristic": "analysability",
+      "line": 329,
+      "message": "cyclomatic complexity 29 > 15 in attempt",
+      "path": "browser/extensions/newtab/lib/WeatherFeed.sys.mjs",
+      "probe": "lizard",
+      "rule": "lizard-ccn",
+      "severity": 14
+    },
+    "hypothesis": "attempt's CCN 29 comes from two dense blocks: opt-in/geolocation resolution and the forecast-widget boolean. Moving the entire !locationName branch into _resolveGeolocation keeps the merino-first guard, opt-in gate, geolocation failure and invalid-field paths (each still returns the same empty result via null), and geolocation errors still reject inside attempt's try/catch, so retries are unchanged. Hoisting the boolean into isForecastEnabled preserves identical short-circuit evaluation. The extraction removes 11+5 decision points and adds 2 (ternary and null check), leaving attempt at 15, with both helpers far below the limit; the diff is 79 lines.",
+    "model": "opencode/deepseek-v4.1-flash-free",
+    "patch": "/home/adchaa/Documents/9raya/quality/loop/artifacts/aqua-runs/20261025T065330Z-a5dcac/series/03-a910780db304.diff",
+    "review": {
+      "candidate_id": "r03-a1-c1",
+      "category": "none",
+      "comments": [],
+      "escalated": false,
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "same_model_as_implementer": true,
+      "seconds": 83.5,
+      "summary": "The extraction is behaviour-preserving: the merino guard still runs first, opt-in gating and geolocation failure/validation still return the same empty result, errors still propagate to attempt's retry catch, and the forecast predicate retains identical short-circuit order. The moved comments and null return semantics are consistent with the existing caller, and the complexity reduction is a genuine decomposition rather than probe evasion. Existing xpcshell coverage exercises geolocation fallbacks, opt-in gating, retries, and hourly skips.",
+      "verdict": "approve"
+    },
+    "run": "20261025T065330Z-a5dcac"
+  }
+}

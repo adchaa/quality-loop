@@ -1,0 +1,3 @@
+ERROR: Could not install cargo-audit:
+
+ERROR: problem with lint setup, skipping cargo-audit
